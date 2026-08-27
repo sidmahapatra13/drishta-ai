@@ -49,17 +49,6 @@ Branch name examples:
 - `docs/setup-checklist.md` - day-zero setup checklist for the team.
 - `.gitignore` - common files that should stay out of Git.
 
-## Suggested Team Roles
-
-- Frontend: app screens, UI state, accessibility, demo polish.
-- Backend: APIs, database, integrations, authentication, deployment.
-- AI/ML: model exploration, prompts, data handling, evaluation.
-- Design/Product: user journey, wireframes, presentation story.
-- Documentation/Pitch: README updates, pitch deck, demo script, submission material.
-- Team Lead: scope control, task assignment, PR review rhythm, final integration.
-
-One person can hold multiple roles, but every task should have a clear owner.
-
 ## Local Setup
 
 The exact setup commands will depend on the stack we choose. Once the first app scaffold is added, document the commands here.
