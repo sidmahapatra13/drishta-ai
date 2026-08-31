@@ -3,6 +3,9 @@
 Run on Kaggle with GPU and Internet both ON (pretrained weights need internet).
 Attach the "APTOS 2019 Blindness Detection" competition dataset.
 
+Use the **T4 x2** accelerator, not P100. Kaggle's current PyTorch build is
+compiled for sm_70 and above; the P100 is sm_60 and will not run.
+
 Produces, in /kaggle/working:
     dr_effnetb0_ordinal.onnx   the network, for MATLAB importNetworkFromONNX
     model_card.json            thresholds and metrics — the numbers for slides
@@ -19,7 +22,9 @@ Two choices here differ from the obvious approach, and both matter:
    tuned cut points optimizes quadratic weighted kappa directly.
 """
 
+import glob
 import json
+import os
 
 import cv2
 import numpy as np
@@ -32,7 +37,6 @@ from sklearn.metrics import cohen_kappa_score, confusion_matrix, roc_auc_score
 from sklearn.model_selection import StratifiedKFold
 from torch.utils.data import DataLoader, Dataset
 
-DATA = "/kaggle/input/aptos2019-blindness-detection"
 OUT = "/kaggle/working"
 SIZE = 456
 BATCH = 16
@@ -52,9 +56,37 @@ np.random.seed(SEED)
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
 
+def find_data() -> str:
+    """Locate the attached APTOS dataset.
+
+    Kaggle has moved competition inputs between /kaggle/input/<slug> and
+    /kaggle/input/competitions/<slug>, and hand-editing the path is what broke
+    this script the first time it ran. Search instead of hard-coding, and fail
+    with the actual directory listing rather than an OpenCV assertion 400
+    images later.
+    """
+    for candidate in glob.glob("/kaggle/input/**/train.csv", recursive=True):
+        root = os.path.dirname(candidate)
+        if os.path.isdir(f"{root}/train_images"):
+            print(f"dataset: {root}")
+            return root
+
+    available = glob.glob("/kaggle/input/*") + glob.glob("/kaggle/input/*/*")
+    raise FileNotFoundError(
+        "Could not find train.csv beside a train_images/ directory under "
+        f"/kaggle/input. Found: {available or 'nothing - no dataset attached'}. "
+        "Add the APTOS 2019 Blindness Detection competition data via Add Input."
+    )
+
+
+DATA = find_data()
+
+
 def preprocess(path: str) -> np.ndarray:
     """Ben Graham preprocessing: circle-crop, resize, subtract local average."""
     img = cv2.imread(path)
+    if img is None:
+        raise FileNotFoundError(f"Could not read {path}")
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 
     # Crop to the retinal disc - the black surround carries no signal and
