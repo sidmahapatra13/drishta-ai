@@ -27,7 +27,13 @@ ORDINAL_THRESHOLDS = [0.5, 1.5, 2.5, 3.5]
 
 
 def _seed(img: Image.Image) -> int:
-    return int(hashlib.sha256(img.tobytes()[:4096]).hexdigest()[:8], 16)
+    """Hash the whole image, not a prefix.
+
+    A fundus photograph opens with the black surround, so the leading bytes are
+    identical across images - seeding from a prefix gave every patient the same
+    grade.
+    """
+    return int(hashlib.sha256(img.tobytes()).hexdigest()[:8], 16)
 
 
 def predict_dr(img: Image.Image) -> dict:
