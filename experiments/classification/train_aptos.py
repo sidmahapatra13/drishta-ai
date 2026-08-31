@@ -1,0 +1,249 @@
+"""APTOS 2019 diabetic retinopathy grading — Kaggle training script.
+
+Run on Kaggle with GPU and Internet both ON (pretrained weights need internet).
+Attach the "APTOS 2019 Blindness Detection" competition dataset.
+
+Produces, in /kaggle/working:
+    dr_effnetb0_ordinal.onnx   the network, for MATLAB importNetworkFromONNX
+    model_card.json            thresholds and metrics — the numbers for slides
+
+Two choices here differ from the obvious approach, and both matter:
+
+1. Ben Graham preprocessing. Circle-crop the retina, then subtract a heavy
+   Gaussian blur. This removes the per-camera colour cast that otherwise
+   dominates the signal, and it is the single largest accuracy lever on APTOS.
+
+2. Ordinal regression, not 5-class softmax. DR grades are ordered - confusing
+   grade 3 for 4 is a smaller error than confusing 0 for 4 - and softmax
+   cross-entropy treats all confusions alike. One continuous output with four
+   tuned cut points optimizes quadratic weighted kappa directly.
+"""
+
+import json
+
+import cv2
+import numpy as np
+import pandas as pd
+import timm
+import torch
+import torch.nn as nn
+from scipy.optimize import minimize
+from sklearn.metrics import cohen_kappa_score, confusion_matrix, roc_auc_score
+from sklearn.model_selection import StratifiedKFold
+from torch.utils.data import DataLoader, Dataset
+
+DATA = "/kaggle/input/aptos2019-blindness-detection"
+OUT = "/kaggle/working"
+SIZE = 456
+BATCH = 16
+EPOCHS = 12
+FOLDS = 5
+LR = 3e-4
+SEED = 42
+
+#: The PS fixes referable DR at grade 2 and above. Not a tunable.
+REFERABLE_FROM = 2
+#: Screening misses cost more than false alarms, so the operating point is
+#: chosen to clear this sensitivity, then take the best specificity available.
+TARGET_SENSITIVITY = 0.90
+
+torch.manual_seed(SEED)
+np.random.seed(SEED)
+DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
+
+
+def preprocess(path: str) -> np.ndarray:
+    """Ben Graham preprocessing: circle-crop, resize, subtract local average."""
+    img = cv2.imread(path)
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+
+    # Crop to the retinal disc - the black surround carries no signal and
+    # varies in size between cameras.
+    gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
+    mask = gray > gray.mean() * 0.12
+    if mask.any():
+        ys, xs = np.nonzero(mask)
+        img = img[ys.min() : ys.max() + 1, xs.min() : xs.max() + 1]
+
+    img = cv2.resize(img, (SIZE, SIZE))
+
+    # Subtract a heavy blur. What survives is local contrast - lesions - with
+    # the camera's colour cast and illumination gradient removed.
+    blur = cv2.GaussianBlur(img, (0, 0), SIZE / 30)
+    img = cv2.addWeighted(img, 4, blur, -4, 128)
+
+    return img
+
+
+class Retinas(Dataset):
+    def __init__(self, df: pd.DataFrame, train: bool):
+        self.df = df.reset_index(drop=True)
+        self.train = train
+
+    def __len__(self) -> int:
+        return len(self.df)
+
+    def __getitem__(self, i):
+        row = self.df.iloc[i]
+        img = preprocess(f"{DATA}/train_images/{row.id_code}.png")
+
+        if self.train:
+            # Fundus images have no canonical orientation, so flips and
+            # rotations are label-preserving. Nothing that changes colour -
+            # preprocessing already normalized it.
+            if np.random.rand() > 0.5:
+                img = np.fliplr(img)
+            if np.random.rand() > 0.5:
+                img = np.flipud(img)
+            img = np.rot90(img, np.random.randint(4))
+
+        img = np.ascontiguousarray(img.transpose(2, 0, 1), dtype=np.float32) / 255.0
+        return torch.from_numpy(img), torch.tensor(row.diagnosis, dtype=torch.float32)
+
+
+def build_model() -> nn.Module:
+    """EfficientNet-B0 with a single continuous output."""
+    return timm.create_model("efficientnet_b0", pretrained=True, num_classes=1)
+
+
+def train_fold(train_df, valid_df, fold: int) -> np.ndarray:
+    model = build_model().to(DEVICE)
+    opt = torch.optim.AdamW(model.parameters(), lr=LR, weight_decay=1e-5)
+    sched = torch.optim.lr_scheduler.CosineAnnealingLR(opt, T_max=EPOCHS)
+    # Smooth L1 rather than MSE: it is less dominated by the rare grade-4 cases.
+    loss_fn = nn.SmoothL1Loss()
+    scaler = torch.amp.GradScaler(DEVICE)
+
+    train_dl = DataLoader(Retinas(train_df, True), batch_size=BATCH, shuffle=True,
+                          num_workers=2, pin_memory=True, drop_last=True)
+    valid_dl = DataLoader(Retinas(valid_df, False), batch_size=BATCH, num_workers=2)
+
+    for epoch in range(EPOCHS):
+        model.train()
+        total = 0.0
+        for x, y in train_dl:
+            x, y = x.to(DEVICE, non_blocking=True), y.to(DEVICE, non_blocking=True)
+            opt.zero_grad(set_to_none=True)
+            with torch.amp.autocast(DEVICE):
+                loss = loss_fn(model(x).squeeze(1), y)
+            scaler.scale(loss).backward()
+            scaler.step(opt)
+            scaler.update()
+            total += loss.item() * len(x)
+        sched.step()
+        print(f"  fold {fold} epoch {epoch + 1}/{EPOCHS}  loss {total / len(train_df):.4f}")
+
+    model.eval()
+    preds = []
+    with torch.no_grad():
+        for x, _ in valid_dl:
+            with torch.amp.autocast(DEVICE):
+                preds.append(model(x.to(DEVICE)).squeeze(1).float().cpu().numpy())
+
+    torch.save(model.state_dict(), f"{OUT}/fold{fold}.pt")
+    return np.concatenate(preds)
+
+
+def apply_thresholds(raw: np.ndarray, cuts) -> np.ndarray:
+    return np.digitize(raw, np.sort(cuts))
+
+
+def fit_thresholds(raw: np.ndarray, true: np.ndarray) -> np.ndarray:
+    """Find the four cut points that maximize quadratic weighted kappa.
+
+    Evenly spaced cuts at 0.5/1.5/2.5/3.5 assume the regression output is
+    calibrated to the label scale, which it is not - the model shrinks toward
+    the mean because most images are grade 0.
+    """
+    def negative_qwk(cuts):
+        return -cohen_kappa_score(true, apply_thresholds(raw, cuts), weights="quadratic")
+
+    best = minimize(negative_qwk, [0.5, 1.5, 2.5, 3.5], method="nelder-mead")
+    return np.sort(best.x)
+
+
+def fit_referable_threshold(raw: np.ndarray, true: np.ndarray) -> dict:
+    """Pick the referable cut that clears TARGET_SENSITIVITY, then maximizes
+    specificity. Sensitivity is the binding constraint in screening."""
+    referable = (true >= REFERABLE_FROM).astype(int)
+    best = None
+
+    for cut in np.linspace(raw.min(), raw.max(), 500):
+        pred = (raw >= cut).astype(int)
+        tp = int(((pred == 1) & (referable == 1)).sum())
+        fn = int(((pred == 0) & (referable == 1)).sum())
+        tn = int(((pred == 0) & (referable == 0)).sum())
+        fp = int(((pred == 1) & (referable == 0)).sum())
+
+        sens = tp / max(tp + fn, 1)
+        spec = tn / max(tn + fp, 1)
+        if sens >= TARGET_SENSITIVITY and (best is None or spec > best["specificity"]):
+            best = {"threshold": float(cut), "sensitivity": sens, "specificity": spec,
+                    "tp": tp, "fp": fp, "tn": tn, "fn": fn}
+
+    if best is None:
+        return {"threshold": None,
+                "note": f"No cut point reached {TARGET_SENSITIVITY:.0%} sensitivity. "
+                        "Report the achieved operating point; do not claim the target."}
+
+    best["roc_auc"] = float(roc_auc_score(referable, raw))
+    return best
+
+
+def export_onnx() -> None:
+    """Export fold 0 for MATLAB. Static input, dynamic batch."""
+    model = build_model()
+    model.load_state_dict(torch.load(f"{OUT}/fold0.pt", map_location="cpu"))
+    model.eval()
+    torch.onnx.export(
+        model,
+        torch.randn(1, 3, SIZE, SIZE),
+        f"{OUT}/dr_effnetb0_ordinal.onnx",
+        input_names=["fundus"],
+        output_names=["grade"],
+        dynamic_axes={"fundus": {0: "batch"}, "grade": {0: "batch"}},
+        opset_version=17,
+    )
+
+
+def main() -> None:
+    df = pd.read_csv(f"{DATA}/train.csv")
+    print(f"{len(df)} images, grade counts:\n{df.diagnosis.value_counts().sort_index()}")
+
+    oof = np.zeros(len(df), dtype=np.float32)
+    folds = StratifiedKFold(FOLDS, shuffle=True, random_state=SEED)
+    for fold, (tr, va) in enumerate(folds.split(df, df.diagnosis)):
+        print(f"fold {fold}")
+        oof[va] = train_fold(df.iloc[tr], df.iloc[va], fold)
+
+    true = df.diagnosis.values
+    cuts = fit_thresholds(oof, true)
+    graded = apply_thresholds(oof, cuts)
+
+    card = {
+        "model": "efficientnet_b0-ordinal",
+        "trained_on": "APTOS 2019 train split, 5-fold CV",
+        "image_size": SIZE,
+        "preprocessing": "ben-graham circle-crop + gaussian subtraction",
+        "grade_thresholds": [float(c) for c in cuts],
+        "qwk": float(cohen_kappa_score(true, graded, weights="quadratic")),
+        "confusion_matrix": confusion_matrix(true, graded).tolist(),
+        "referable": fit_referable_threshold(oof, true),
+        "caveat": (
+            "Cross-validated on APTOS only. Not clinical validation, and not "
+            "evidence of generalization - report IDRiD external validation "
+            "separately."
+        ),
+    }
+
+    with open(f"{OUT}/model_card.json", "w") as f:
+        json.dump(card, f, indent=2)
+
+    np.save(f"{OUT}/oof_predictions.npy", oof)
+    export_onnx()
+
+    print(json.dumps({k: v for k, v in card.items() if k != "confusion_matrix"}, indent=2))
+
+
+if __name__ == "__main__":
+    main()
