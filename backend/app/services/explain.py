@@ -28,7 +28,7 @@ def gradcam(img: Image.Image, grade: int | None) -> Image.Image | None:
     base = img.convert("RGB")
     w, h = base.size
     rng = np.random.default_rng(
-        int(hashlib.sha256(img.tobytes()[:4096]).hexdigest()[16:24], 16)
+        int(hashlib.sha256(img.tobytes()).hexdigest()[16:24], 16)
     )
 
     # A few Gaussian blobs standing in for attention peaks.

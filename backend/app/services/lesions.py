@@ -30,7 +30,7 @@ def segment_lesions(img: Image.Image, grade: int | None) -> list[Lesion]:
         return []
 
     rng = np.random.default_rng(
-        int(hashlib.sha256(img.tobytes()[:4096]).hexdigest()[8:16], 16)
+        int(hashlib.sha256(img.tobytes()).hexdigest()[8:16], 16)
     )
 
     lesions: list[Lesion] = []
