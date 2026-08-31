@@ -3,11 +3,16 @@
 ## Run it on Kaggle
 
 1. kaggle.com → **Create → Notebook**
-2. **File → Import Notebook**, or paste `train_aptos.py` into one cell
+2. **File → Import Notebook** → `train_aptos.ipynb`
+
+   Import the notebook rather than pasting the `.py`. Pasting invites hand-edits,
+   and an edit to the dataset path is what dropped an f-string prefix and broke
+   the first run. The path is auto-detected now; you should not need to touch it.
 3. Right panel → **Add Input** → search "APTOS 2019 Blindness Detection" → add
    the competition dataset
 4. Right panel → **Session options**:
-   - Accelerator: **GPU T4 x2** or **P100**
+   - Accelerator: **GPU T4 x2** — *not* P100. Kaggle's PyTorch build is
+     compiled for sm_70 and above; the P100 is sm_60 and will not run.
    - Internet: **On** — pretrained weights download at startup
 5. **Run All**. Expect roughly 1.5–2 hours for 5 folds.
 6. Download from the Output tab:
