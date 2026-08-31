@@ -130,3 +130,24 @@ export async function askClinical(question: string, screeningId?: string) {
     }),
   );
 }
+
+export async function getScreening(screeningId: string): Promise<PatientResult> {
+  return json(await fetch(`${BASE}/screening/${screeningId}`));
+}
+
+export interface ReviewSubmission {
+  action: "confirm" | "override" | "request_recapture" | "refer";
+  reviewer_ref: string;
+  override_grade?: number | null;
+  notes?: string | null;
+}
+
+export async function submitReview(screeningId: string, review: ReviewSubmission) {
+  return json<{ status: string }>(
+    await fetch(`${BASE}/review/${screeningId}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(review),
+    }),
+  );
+}

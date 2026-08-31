@@ -101,3 +101,33 @@ def test_contract_shape_survives_serialization():
         "t", "P1", pipeline.analyze_eye(synthetic_fundus(), Eye.LEFT, "t"), None
     )
     assert "screening_id" in result.model_dump_json()
+
+
+def test_review_round_trip(tmp_path, monkeypatch):
+    """The doctor's verdict must persist and move the case out of the queue.
+
+    This is the human-in-the-loop step, and it is a demo beat, so it gets a test.
+    """
+    from app import db
+
+    monkeypatch.setattr(db, "DB_PATH", tmp_path / "t.sqlite")
+    db.init()
+
+    result = fusion.fuse(
+        "s1", "IND-1", pipeline.analyze_eye(synthetic_fundus(), Eye.LEFT, "s1"), None
+    )
+    with db.session() as conn:
+        conn.execute("INSERT INTO patients (patient_ref) VALUES ('IND-1')")
+        db.save_screening(conn, result)
+
+    with db.session() as conn:
+        assert db.review_queue(conn)[0]["review_status"] == "pending"
+
+    from app.contract import ReviewAction
+
+    with db.session() as conn:
+        db.save_review(conn, "s1", ReviewAction(action="confirm", reviewer_ref="DR-1"))
+
+    with db.session() as conn:
+        assert db.review_queue(conn)[0]["review_status"] == "reviewed"
+        assert db.get_screening(conn, "s1")["patient_ref"] == "IND-1"
