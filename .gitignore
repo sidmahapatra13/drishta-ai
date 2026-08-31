@@ -40,3 +40,10 @@ tmp/
 temp/
 *.sqlite
 *.db
+
+# Local model and dataset artifacts
+*.onnx
+*.mat
+*.pth
+datasets/
+local-data/
