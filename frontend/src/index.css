@@ -1,0 +1,262 @@
+/* Design tokens.
+ *
+ * The palette is taken from fundus anatomy rather than a brand deck: the near
+ * black of the vitreous surround every retinal photograph sits on, the
+ * orange-red of the retina itself, the cream-yellow of the optic disc.
+ *
+ * The interface is dark because that is how retinal images are actually read -
+ * a lit disc against a dark surround, the way an ophthalmologist views them -
+ * not as a style choice. */
+
+@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap");
+
+:root {
+  --vitreous: #0b0e14;      /* page ground */
+  --panel: #141a23;         /* raised surface */
+  --vessel: #1f2937;        /* borders, dividers */
+  --sclera: #f2efe9;        /* primary text */
+  --muted: #8b97a8;         /* secondary text */
+
+  --retina: #c9552e;        /* referable */
+  --urgent: #e0603a;        /* grade 4 */
+  --disc: #e8c77a;          /* borderline, warnings */
+  --clear: #4fa88b;         /* non-referable, pass */
+
+  --step: 8px;
+  --radius: 4px;
+
+  /* IBM Plex: built for technical and instrument contexts, and its Devanagari
+   * companion covers the regional-language support on the roadmap. */
+  --sans: "IBM Plex Sans", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, monospace;
+
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--vitreous);
+  color: var(--sclera);
+  font-family: var(--sans);
+  font-size: 15px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Every measured value is an instrument reading, so it is set in mono and
+ * tabular-aligned. Nothing that is not a measurement uses this face. */
+.readout {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+
+.eyebrow {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* --- Shell ------------------------------------------------------------- */
+
+.shell { max-width: 1180px; margin: 0 auto; padding: calc(var(--step) * 4); }
+
+header.top {
+  display: flex;
+  align-items: baseline;
+  gap: calc(var(--step) * 2);
+  flex-wrap: wrap;
+  border-bottom: 1px solid var(--vessel);
+  padding-bottom: calc(var(--step) * 2);
+  margin-bottom: calc(var(--step) * 3);
+}
+
+header.top h1 { font-size: 19px; font-weight: 600; margin: 0; letter-spacing: -0.01em; }
+header.top .flow { color: var(--muted); font-size: 13px; font-family: var(--mono); }
+
+nav.tabs { display: flex; gap: 2px; margin-bottom: calc(var(--step) * 3); flex-wrap: wrap; }
+
+nav.tabs button {
+  background: transparent;
+  border: 1px solid transparent;
+  border-bottom-color: var(--vessel);
+  color: var(--muted);
+  font-family: var(--sans);
+  font-size: 14px;
+  padding: calc(var(--step) * 1.25) calc(var(--step) * 2);
+  cursor: pointer;
+}
+nav.tabs button[aria-selected="true"] {
+  color: var(--sclera);
+  border-color: var(--vessel);
+  border-bottom-color: var(--vitreous);
+  background: var(--panel);
+}
+nav.tabs button:focus-visible { outline: 2px solid var(--disc); outline-offset: -2px; }
+
+/* --- Panels ------------------------------------------------------------ */
+
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--vessel);
+  border-radius: var(--radius);
+  padding: calc(var(--step) * 2.5);
+}
+
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: calc(var(--step) * 2); }
+.stack { display: flex; flex-direction: column; gap: calc(var(--step) * 2); }
+
+label { display: block; }
+label .name { font-size: 13px; color: var(--muted); margin-bottom: 6px; }
+
+input[type="text"], input[type="number"], input[type="file"] {
+  width: 100%;
+  background: var(--vitreous);
+  border: 1px solid var(--vessel);
+  border-radius: var(--radius);
+  color: var(--sclera);
+  font-family: var(--mono);
+  font-size: 14px;
+  padding: calc(var(--step) * 1.25);
+}
+input:focus-visible { outline: 2px solid var(--disc); outline-offset: 1px; }
+
+button.primary {
+  background: var(--sclera);
+  color: var(--vitreous);
+  border: none;
+  border-radius: var(--radius);
+  font-family: var(--sans);
+  font-size: 15px;
+  font-weight: 600;
+  padding: calc(var(--step) * 1.5) calc(var(--step) * 3);
+  cursor: pointer;
+}
+button.primary:disabled { opacity: 0.45; cursor: not-allowed; }
+button.primary:focus-visible { outline: 2px solid var(--disc); outline-offset: 2px; }
+
+/* --- Signature: the severity ladder ------------------------------------ */
+
+/* The International Clinical DR Severity Scale is ordinal and has one fixed
+ * clinical threshold. Drawing it as a ladder with a hard rule between grades 1
+ * and 2 shows both facts at once: where this patient sits, and the line that
+ * decides referral. The threshold is set by the scale, not by us. */
+
+.ladder { display: flex; flex-direction: column; gap: 0; margin: 0; padding: 0; list-style: none; }
+
+.ladder li {
+  display: grid;
+  grid-template-columns: 34px 1fr auto;
+  align-items: center;
+  gap: calc(var(--step) * 1.5);
+  padding: calc(var(--step) * 1.25) 0;
+  color: var(--muted);
+  border-left: 3px solid var(--vessel);
+  padding-left: calc(var(--step) * 1.5);
+}
+
+.ladder li .num { font-family: var(--mono); font-size: 18px; font-weight: 500; }
+.ladder li .label { font-size: 14px; }
+
+.ladder li[data-active="true"] {
+  color: var(--sclera);
+  border-left-color: var(--reading, var(--sclera));
+  background: linear-gradient(90deg, color-mix(in srgb, var(--reading, var(--sclera)) 14%, transparent), transparent 70%);
+}
+.ladder li[data-active="true"] .num { font-size: 22px; font-weight: 600; color: var(--reading, var(--sclera)); }
+
+/* The referral threshold: a real line, because it is a real boundary. */
+.ladder li[data-threshold="true"] { border-top: 1px solid var(--retina); margin-top: 2px; }
+.threshold-note {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--retina);
+  padding-left: calc(var(--step) * 1.5);
+  margin-top: 4px;
+}
+
+/* --- Status ------------------------------------------------------------ */
+
+.verdict { display: flex; align-items: baseline; gap: calc(var(--step) * 1.5); flex-wrap: wrap; }
+.verdict .grade-label { font-size: 26px; font-weight: 700; letter-spacing: -0.02em; }
+
+.tag {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 4px 9px;
+  border-radius: 2px;
+  border: 1px solid currentColor;
+  white-space: nowrap;
+}
+.tag.referable { color: var(--retina); }
+.tag.urgent { color: var(--urgent); background: color-mix(in srgb, var(--urgent) 12%, transparent); }
+.tag.clear { color: var(--clear); }
+.tag.pending { color: var(--disc); }
+
+/* --- Quality readout --------------------------------------------------- */
+
+.metric { display: grid; grid-template-columns: 1fr 90px 46px; align-items: center; gap: var(--step); padding: 5px 0; }
+.metric .bar { height: 3px; background: var(--vessel); border-radius: 2px; overflow: hidden; }
+.metric .bar span { display: block; height: 100%; background: var(--reading, var(--clear)); }
+.metric .val { font-family: var(--mono); font-size: 13px; text-align: right; }
+
+/* --- Recapture: the quality gate refusing to grade ---------------------- */
+
+.recapture {
+  border: 1px solid var(--disc);
+  border-left-width: 3px;
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--disc) 8%, transparent);
+  padding: calc(var(--step) * 2);
+}
+.recapture h3 { margin: 0 0 6px; font-size: 15px; color: var(--disc); }
+.recapture p { margin: 0; color: var(--sclera); font-size: 14px; }
+
+/* --- Tables ------------------------------------------------------------ */
+
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+th {
+  text-align: left;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-weight: 400;
+  padding: 0 0 var(--step);
+  border-bottom: 1px solid var(--vessel);
+}
+td { padding: calc(var(--step) * 1.25) 0; border-bottom: 1px solid var(--vessel); }
+td.num { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+
+figure { margin: 0; }
+figure img { width: 100%; border-radius: var(--radius); display: block; background: #000; }
+figcaption { font-size: 12px; color: var(--muted); margin-top: 6px; }
+
+.disclaimer {
+  font-size: 12.5px;
+  color: var(--muted);
+  border-top: 1px solid var(--vessel);
+  padding-top: calc(var(--step) * 1.5);
+  margin-top: calc(var(--step) * 3);
+}
+
+.error { color: var(--urgent); font-size: 14px; }
+.empty { color: var(--muted); font-size: 14px; }
+
+@media (max-width: 760px) {
+  .grid-2 { grid-template-columns: 1fr; }
+  .shell { padding: calc(var(--step) * 2); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}
