@@ -14,13 +14,35 @@
    - Accelerator: **GPU T4 x2** — *not* P100. Kaggle's PyTorch build is
      compiled for sm_70 and above; the P100 is sm_60 and will not run.
    - Internet: **On** — pretrained weights download at startup
-5. **Run All**. Expect roughly 1.5–2 hours for 5 folds.
-6. Download from the Output tab:
+5. **Save Version → Save & Run All (Commit)** — *not* the interactive Run All
+   button.
+
+   This matters more than it looks. An interactive session's `/kaggle/working`
+   is scratch: close the tab, and the fold checkpoints written so far are gone
+   with the container. A committed version runs detached for up to 12 hours and
+   saves its output automatically. Start it, close the laptop, collect the
+   output later.
+6. Download from the Output tab of the finished version:
    - `dr_effnetb0_ordinal.onnx` → `matlab/models/`
    - `model_card.json` → the numbers for the metrics slide
 
-Free tier gives 30 GPU-hours a week, so this costs about 6% of the quota. There
-is room to re-run.
+Free tier gives 30 GPU-hours a week, so there is room to re-run.
+
+## Why it is not slow any more
+
+The first run took five hours, and the GPU was not the reason. `preprocess()`
+decodes a 3000x2000 PNG, and it was being called from `__getitem__` — so every
+image was decoded 60 times, once per epoch per fold. Measured locally that is
+~104 ms per call against ~0.2 ms to read an already-preprocessed image, and
+the T4 spent the run waiting on the CPU.
+
+`build_cache()` now runs `preprocess()` once over the dataset into a memmapped
+uint8 array in `/kaggle/temp` (~2.3 GB, scratch, not part of the saved output).
+`preprocess()` is deterministic and augmentation still happens per
+`__getitem__`, so this changes speed and nothing else about the model.
+
+Per-epoch wall time is printed as the run goes. If a fold's epochs are slow,
+that is now genuinely the GPU, and `SIZE` is the lever.
 
 ## What comes back
 
@@ -30,6 +52,9 @@ specificity and ROC-AUC.
 
 If `referable.threshold` is `null`, no cut point reached 90% sensitivity.
 Report the operating point actually achieved. Do not claim the target.
+
+`oof_predictions.npy` is rewritten after every fold, so a run that dies at fold
+4 still leaves the finished folds' predictions and checkpoints in the output.
 
 ## Then
 
