@@ -20,11 +20,20 @@ Two choices here differ from the obvious approach, and both matter:
    grade 3 for 4 is a smaller error than confusing 0 for 4 - and softmax
    cross-entropy treats all confusions alike. One continuous output with four
    tuned cut points optimizes quadratic weighted kappa directly.
+
+3. Preprocessing is cached to disk before training, not run per __getitem__.
+   The first run took five hours because it decoded each 3000x2000 PNG sixty
+   times - twelve epochs across five folds - and the T4 sat waiting on the CPU.
+
+Save this as a **version** (Save Version -> Save & Run All), not an interactive
+Run All. A batch run survives the browser closing; an interactive session's
+/kaggle/working does not.
 """
 
 import glob
 import json
 import os
+import time
 
 import cv2
 import numpy as np
@@ -44,6 +53,9 @@ EPOCHS = 12
 FOLDS = 5
 LR = 3e-4
 SEED = 42
+#: Kaggle gives four cores. With preprocessing cached the loader only has to
+#: augment and cast, but four workers still keeps the GPU fed at batch 16.
+WORKERS = 4
 
 #: The PS fixes referable DR at grade 2 and above. Not a tunable.
 REFERABLE_FROM = 2
@@ -107,9 +119,59 @@ def preprocess(path: str) -> np.ndarray:
     return img
 
 
+class Unprocessed(Dataset):
+    """Yields preprocessed images in id order. Used once, to fill the cache."""
+
+    def __init__(self, ids):
+        self.ids = ids
+
+    def __len__(self) -> int:
+        return len(self.ids)
+
+    def __getitem__(self, i):
+        return torch.from_numpy(preprocess(f"{DATA}/train_images/{self.ids[i]}.png"))
+
+
+def build_cache(ids) -> np.ndarray:
+    """Preprocess every image once into a memmapped uint8 array.
+
+    preprocess() is deterministic, so hoisting it out of the training loop
+    changes nothing about the model - it only stops the same PNG being decoded
+    once per epoch per fold. Augmentation still happens per __getitem__.
+
+    Written to /kaggle/temp, not /kaggle/working: it is 2.3 GB of scratch and
+    has no business in the saved output. Workers memmap it rather than each
+    holding a copy.
+    """
+    path = "/kaggle/temp/preprocessed.npy"
+    os.makedirs("/kaggle/temp", exist_ok=True)
+    cache = np.lib.format.open_memmap(
+        path, mode="w+", dtype=np.uint8, shape=(len(ids), SIZE, SIZE, 3)
+    )
+
+    # A DataLoader, not a ProcessPoolExecutor: multiprocessing pools are
+    # unreliable inside a notebook kernel, and torch's worker handling is
+    # already the mechanism this script depends on. shuffle is off, so batches
+    # arrive in id order and row i is ids[i].
+    started = time.time()
+    loader = DataLoader(Unprocessed(ids), batch_size=32, num_workers=WORKERS)
+    at = 0
+    for batch in loader:
+        cache[at : at + len(batch)] = batch.numpy()
+        at += len(batch)
+        if at % 512 == 0:
+            print(f"  cached {at}/{len(ids)}", flush=True)
+    cache.flush()
+    assert at == len(ids), f"cached {at} of {len(ids)} images"
+
+    print(f"cache built in {time.time() - started:.0f}s -> {path}")
+    return np.load(path, mmap_mode="r")
+
+
 class Retinas(Dataset):
-    def __init__(self, df: pd.DataFrame, train: bool):
+    def __init__(self, df: pd.DataFrame, cache: np.ndarray, train: bool):
         self.df = df.reset_index(drop=True)
+        self.cache = cache
         self.train = train
 
     def __len__(self) -> int:
@@ -117,7 +179,7 @@ class Retinas(Dataset):
 
     def __getitem__(self, i):
         row = self.df.iloc[i]
-        img = preprocess(f"{DATA}/train_images/{row.id_code}.png")
+        img = self.cache[row.cache_row]
 
         if self.train:
             # Fundus images have no canonical orientation, so flips and
@@ -138,7 +200,7 @@ def build_model() -> nn.Module:
     return timm.create_model("efficientnet_b0", pretrained=True, num_classes=1)
 
 
-def train_fold(train_df, valid_df, fold: int) -> np.ndarray:
+def train_fold(train_df, valid_df, cache: np.ndarray, fold: int) -> np.ndarray:
     model = build_model().to(DEVICE)
     opt = torch.optim.AdamW(model.parameters(), lr=LR, weight_decay=1e-5)
     sched = torch.optim.lr_scheduler.CosineAnnealingLR(opt, T_max=EPOCHS)
@@ -146,11 +208,14 @@ def train_fold(train_df, valid_df, fold: int) -> np.ndarray:
     loss_fn = nn.SmoothL1Loss()
     scaler = torch.amp.GradScaler(DEVICE)
 
-    train_dl = DataLoader(Retinas(train_df, True), batch_size=BATCH, shuffle=True,
-                          num_workers=2, pin_memory=True, drop_last=True)
-    valid_dl = DataLoader(Retinas(valid_df, False), batch_size=BATCH, num_workers=2)
+    train_dl = DataLoader(Retinas(train_df, cache, True), batch_size=BATCH, shuffle=True,
+                          num_workers=WORKERS, pin_memory=True, drop_last=True,
+                          persistent_workers=True)
+    valid_dl = DataLoader(Retinas(valid_df, cache, False), batch_size=BATCH,
+                          num_workers=WORKERS)
 
     for epoch in range(EPOCHS):
+        started = time.time()
         model.train()
         total = 0.0
         for x, y in train_dl:
@@ -163,7 +228,8 @@ def train_fold(train_df, valid_df, fold: int) -> np.ndarray:
             scaler.update()
             total += loss.item() * len(x)
         sched.step()
-        print(f"  fold {fold} epoch {epoch + 1}/{EPOCHS}  loss {total / len(train_df):.4f}")
+        print(f"  fold {fold} epoch {epoch + 1}/{EPOCHS}  loss {total / len(train_df):.4f}"
+              f"  {time.time() - started:.0f}s", flush=True)
 
     model.eval()
     preds = []
@@ -242,11 +308,19 @@ def main() -> None:
     df = pd.read_csv(f"{DATA}/train.csv")
     print(f"{len(df)} images, grade counts:\n{df.diagnosis.value_counts().sort_index()}")
 
+    # Row into the preprocessed cache. It has to survive the fold split, which
+    # hands train_fold a subset with its own index.
+    df["cache_row"] = np.arange(len(df))
+    cache = build_cache(df.id_code.tolist())
+
     oof = np.zeros(len(df), dtype=np.float32)
     folds = StratifiedKFold(FOLDS, shuffle=True, random_state=SEED)
     for fold, (tr, va) in enumerate(folds.split(df, df.diagnosis)):
-        print(f"fold {fold}")
-        oof[va] = train_fold(df.iloc[tr], df.iloc[va], fold)
+        print(f"fold {fold}", flush=True)
+        oof[va] = train_fold(df.iloc[tr], df.iloc[va], cache, fold)
+        # Checkpoint after every fold. If the run dies at fold 4 the finished
+        # folds are still in the output, not thrown away.
+        np.save(f"{OUT}/oof_predictions.npy", oof)
 
     true = df.diagnosis.values
     cuts = fit_thresholds(oof, true)
@@ -271,7 +345,6 @@ def main() -> None:
     with open(f"{OUT}/model_card.json", "w") as f:
         json.dump(card, f, indent=2)
 
-    np.save(f"{OUT}/oof_predictions.npy", oof)
     export_onnx()
 
     print(json.dumps({k: v for k, v in card.items() if k != "confusion_matrix"}, indent=2))
