@@ -10,4 +10,8 @@ pydantic
 # ordinal output by up to 1.83 on real APTOS images - more than a grade
 # boundary. See services/classifier.preprocess.
 onnxruntime
+# onnx itself, for Grad-CAM: onnxruntime only returns tensors named in the
+# graph outputs, so services/explain.py promotes the last feature map to one on
+# an in-memory copy of the network.
+onnx
 opencv-python-headless

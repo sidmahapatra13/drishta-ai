@@ -59,6 +59,26 @@ def _versions() -> tuple[str, str]:
 MODEL_VERSION, THRESHOLD_VERSION = _versions()
 
 
+def retina_mask(arr: np.ndarray) -> np.ndarray:
+    """Boolean mask of the imaged retina within a fundus photograph.
+
+    The black surround carries no signal and its size varies between cameras.
+    Grad-CAM needs this as well as preprocessing does - attention landing
+    outside the retina is a convolution artifact, not evidence.
+    """
+    gray = cv2.cvtColor(arr, cv2.COLOR_RGB2GRAY)
+    return gray > gray.mean() * 0.12
+
+
+def retina_bbox(arr: np.ndarray) -> tuple[int, int, int, int] | None:
+    """(top, bottom, left, right) of the retinal disc, or None if unfindable."""
+    mask = retina_mask(arr)
+    if not mask.any():
+        return None
+    ys, xs = np.nonzero(mask)
+    return int(ys.min()), int(ys.max()) + 1, int(xs.min()), int(xs.max()) + 1
+
+
 def preprocess(img: Image.Image) -> np.ndarray:
     """Ben Graham preprocessing, identical to training.
 
@@ -72,13 +92,10 @@ def preprocess(img: Image.Image) -> np.ndarray:
     """
     arr = np.asarray(img.convert("RGB"))
 
-    # Crop to the retinal disc. The black surround carries no signal and its
-    # size varies between cameras.
-    gray = cv2.cvtColor(arr, cv2.COLOR_RGB2GRAY)
-    mask = gray > gray.mean() * 0.12
-    if mask.any():
-        ys, xs = np.nonzero(mask)
-        arr = arr[ys.min() : ys.max() + 1, xs.min() : xs.max() + 1]
+    box = retina_bbox(arr)
+    if box is not None:
+        top, bottom, left, right = box
+        arr = arr[top:bottom, left:right]
 
     arr = cv2.resize(arr, (SIZE, SIZE))
 
@@ -86,6 +103,18 @@ def preprocess(img: Image.Image) -> np.ndarray:
     # the camera's colour cast and illumination gradient removed.
     blur = cv2.GaussianBlur(arr, (0, 0), SIZE / 30)
     return cv2.addWeighted(arr, 4, blur, -4, 128)
+
+
+def model_input(img: Image.Image) -> np.ndarray:
+    """The exact NCHW batch the network is fed.
+
+    Grad-CAM must run this same tensor or the attention map explains a
+    prediction that was never made, so the construction lives here rather than
+    inline in predict_dr.
+    """
+    return np.ascontiguousarray(
+        preprocess(img).transpose(2, 0, 1), dtype=np.float32
+    )[None] / 255.0
 
 
 def grade_likelihood(raw: float, cuts: np.ndarray) -> list[float]:
@@ -155,10 +184,7 @@ def predict_dr(img: Image.Image) -> dict:
         return _stub_predict(img)
 
     session, cuts = loaded
-    batch = np.ascontiguousarray(
-        preprocess(img).transpose(2, 0, 1), dtype=np.float32
-    )[None] / 255.0
-    raw = float(session.run(["grade"], {"fundus": batch})[0].ravel()[0])
+    raw = float(session.run(["grade"], {"fundus": model_input(img)})[0].ravel()[0])
 
     # The grade is the referral decision: cuts[1] is the grade-2 boundary and
     # was fitted to clear the screening sensitivity target, so a case can never

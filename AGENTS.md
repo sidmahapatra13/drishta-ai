@@ -64,13 +64,19 @@ change. The demo must never break while intelligence is filled in behind it.
 
 ## Stubs
 
-`classifier.py`, `lesions.py`, `explain.py`, `rag.py`, `simulation.py` are
-stubs. They are deterministic — the same image always yields the same result —
-so demo rehearsals reproduce. Seeds hash the **whole** image: a fundus photo
-opens with the black surround, so hashing a prefix gives every patient the same
-result.
+`lesions.py`, `rag.py`, `simulation.py` are stubs. `rag.py` and
+`simulation.py` are deterministic — the same input always yields the same
+result — so demo rehearsals reproduce. Seeds hash the **whole** image: a fundus
+photo opens with the black surround, so hashing a prefix gives every patient the
+same result.
 
-Real already: `quality.py`, `enhancement.py`, `fusion.py`.
+`lesions.py` is the exception, and deliberately: it returns nothing at all. A
+stub that invents per-class counts puts a fabricated clinical finding into the
+UI's evidence panel and into the patient summary. Leave it silent until the
+detector is real.
+
+Real already: `quality.py`, `enhancement.py`, `fusion.py`, `classifier.py`,
+`explain.py`.
 
 ## Working here
 

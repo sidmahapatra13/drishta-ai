@@ -57,8 +57,9 @@ frozen contract.
 | Result contract (`backend/app/contract.py`) | **Frozen** — build against this |
 | Quality assessment, enhancement (CLAHE) | **Real** |
 | Quality gate + patient-level fusion | **Real** |
-| DR classifier | **Trained** — weights released; `services/classifier.py` still returns the stub |
-| Lesions, Grad-CAM | Stub |
+| DR classifier | **Real** — trained network, weights released |
+| Grad-CAM | **Real** — no gradients needed; see `services/explain.py` |
+| Lesions | Stub, and silent: it reports nothing rather than inventing counts |
 | RAG assistant, deployment simulation | Stub |
 
 Stubs are deterministic: the same image always yields the same result, so demo
@@ -79,7 +80,7 @@ cd frontend && npm install && npm run dev
 ```
 
 ```bash
-cd backend && PYTHONPATH=. ../.venv/bin/python -m pytest tests/ -q   # 9 tests
+cd backend && PYTHONPATH=. ../.venv/bin/python -m pytest tests/ -q   # 23 tests
 ```
 
 Model weights are not in git. Fetch the trained network into `matlab/models/`:
