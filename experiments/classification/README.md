@@ -50,8 +50,16 @@ that is now genuinely the GPU, and `SIZE` is the lever.
 confusion matrix, and the referable operating point with its sensitivity,
 specificity and ROC-AUC.
 
-If `referable.threshold` is `null`, no cut point reached 90% sensitivity.
-Report the operating point actually achieved. Do not claim the target.
+`referable.threshold` is the grade-2 cut point itself, not a separately tuned
+number. Referable DR is grade 2 and above, so the two cannot be fitted
+independently - doing so put 2.5% of APTOS into a band that graded 2 while
+withholding referral. `fit_thresholds` now maximizes QWK subject to that one
+boundary clearing the sensitivity target, so the grade and the referral flag
+can never disagree.
+
+If the `referable` block carries a `note`, no feasible cut reached 90%
+sensitivity. Report the operating point actually achieved. Do not claim the
+target.
 
 `oof_predictions.npy` is rewritten after every fold, so a run that dies at fold
 4 still leaves the finished folds' predictions and checkpoints in the output.

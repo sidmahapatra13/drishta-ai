@@ -91,7 +91,10 @@ def find_data() -> str:
     )
 
 
-DATA = find_data()
+#: Resolved at import so a missing dataset fails immediately rather than 400
+#: images into the run. Skipped off-Kaggle so the fitting functions below can
+#: be imported to refit thresholds from oof_predictions.npy without a GPU.
+DATA = find_data() if os.path.isdir("/kaggle/input") else ""
 
 
 def preprocess(path: str) -> np.ndarray:
@@ -247,45 +250,69 @@ def apply_thresholds(raw: np.ndarray, cuts) -> np.ndarray:
 
 
 def fit_thresholds(raw: np.ndarray, true: np.ndarray) -> np.ndarray:
-    """Find the four cut points that maximize quadratic weighted kappa.
+    """Find the four cut points that maximize quadratic weighted kappa, subject
+    to the grade-2 boundary clearing TARGET_SENSITIVITY.
 
     Evenly spaced cuts at 0.5/1.5/2.5/3.5 assume the regression output is
     calibrated to the label scale, which it is not - the model shrinks toward
     the mean because most images are grade 0.
+
+    The grade-2 boundary is not a free parameter. The PS fixes referable DR at
+    grade 2 and above, so that cut *is* the referral decision and has to clear
+    the screening sensitivity target. Fitting the grade scale and the referral
+    cut independently is what put 92 of 3,662 APTOS cases - 2.5% - into a band
+    that graded 2 while withholding referral, contradicting
+    contract.py::REFERABLE_FROM_GRADE before it ever reached the UI.
     """
-    def negative_qwk(cuts):
+    def penalized_negative_qwk(cuts):
+        cuts = np.sort(cuts)
+        if sensitivity_at(raw, true, cuts[1]) < TARGET_SENSITIVITY:
+            return 1.0  # infeasible; any real solution scores below zero
         return -cohen_kappa_score(true, apply_thresholds(raw, cuts), weights="quadratic")
 
-    best = minimize(negative_qwk, [0.5, 1.5, 2.5, 3.5], method="nelder-mead")
+    # QWK is piecewise constant in the cuts, so Nelder-Mead is start-sensitive
+    # and a bad local optimum would quietly degrade the model. Three starts.
+    starts = [[0.5, 1.5, 2.5, 3.5],
+              [0.6, 1.3, 2.5, 3.2],
+              list(np.quantile(raw, [0.50, 0.75, 0.90, 0.97]))]
+    best = min((minimize(penalized_negative_qwk, s, method="nelder-mead") for s in starts),
+               key=lambda result: result.fun)
     return np.sort(best.x)
 
 
-def fit_referable_threshold(raw: np.ndarray, true: np.ndarray) -> dict:
-    """Pick the referable cut that clears TARGET_SENSITIVITY, then maximizes
-    specificity. Sensitivity is the binding constraint in screening."""
+def sensitivity_at(raw: np.ndarray, true: np.ndarray, cut: float) -> float:
+    """Referable sensitivity if `cut` were the grade-2 boundary."""
+    referable = true >= REFERABLE_FROM
+    return float(((raw >= cut) & referable).sum() / max(referable.sum(), 1))
+
+
+def referable_operating_point(raw: np.ndarray, true: np.ndarray, cut: float) -> dict:
+    """Measure the referral operating point at the grade-2 boundary.
+
+    This reports; it does not choose. The sensitivity constraint is applied in
+    fit_thresholds, so the grade a clinician sees and the referral flag beside
+    it can never disagree.
+    """
     referable = (true >= REFERABLE_FROM).astype(int)
-    best = None
+    pred = (raw >= cut).astype(int)
+    tp = int(((pred == 1) & (referable == 1)).sum())
+    fn = int(((pred == 0) & (referable == 1)).sum())
+    tn = int(((pred == 0) & (referable == 0)).sum())
+    fp = int(((pred == 1) & (referable == 0)).sum())
 
-    for cut in np.linspace(raw.min(), raw.max(), 500):
-        pred = (raw >= cut).astype(int)
-        tp = int(((pred == 1) & (referable == 1)).sum())
-        fn = int(((pred == 0) & (referable == 1)).sum())
-        tn = int(((pred == 0) & (referable == 0)).sum())
-        fp = int(((pred == 1) & (referable == 0)).sum())
-
-        sens = tp / max(tp + fn, 1)
-        spec = tn / max(tn + fp, 1)
-        if sens >= TARGET_SENSITIVITY and (best is None or spec > best["specificity"]):
-            best = {"threshold": float(cut), "sensitivity": sens, "specificity": spec,
-                    "tp": tp, "fp": fp, "tn": tn, "fn": fn}
-
-    if best is None:
-        return {"threshold": None,
-                "note": f"No cut point reached {TARGET_SENSITIVITY:.0%} sensitivity. "
-                        "Report the achieved operating point; do not claim the target."}
-
-    best["roc_auc"] = float(roc_auc_score(referable, raw))
-    return best
+    point = {
+        "threshold": float(cut),
+        "sensitivity": tp / max(tp + fn, 1),
+        "specificity": tn / max(tn + fp, 1),
+        "tp": tp, "fp": fp, "tn": tn, "fn": fn,
+        "roc_auc": float(roc_auc_score(referable, raw)),
+    }
+    if point["sensitivity"] < TARGET_SENSITIVITY:
+        point["note"] = (
+            f"No cut point reached {TARGET_SENSITIVITY:.0%} sensitivity. "
+            "Report the achieved operating point; do not claim the target."
+        )
+    return point
 
 
 def export_onnx() -> None:
@@ -301,6 +328,12 @@ def export_onnx() -> None:
         output_names=["grade"],
         dynamic_axes={"fundus": {0: "batch"}, "grade": {0: "batch"}},
         opset_version=17,
+        # PyTorch 2.9 made the torch.export-based exporter the default, and that
+        # path imports onnxscript, which Kaggle's image does not ship - a run
+        # that finished all five folds then died here with ModuleNotFoundError.
+        # The TorchScript exporter needs no extra package and is the better
+        # tested path into MATLAB's importNetworkFromONNX. Deprecated, not gone.
+        dynamo=False,
     )
 
 
@@ -334,7 +367,7 @@ def main() -> None:
         "grade_thresholds": [float(c) for c in cuts],
         "qwk": float(cohen_kappa_score(true, graded, weights="quadratic")),
         "confusion_matrix": confusion_matrix(true, graded).tolist(),
-        "referable": fit_referable_threshold(oof, true),
+        "referable": referable_operating_point(oof, true, cuts[1]),
         "caveat": (
             "Cross-validated on APTOS only. Not clinical validation, and not "
             "evidence of generalization - report IDRiD external validation "

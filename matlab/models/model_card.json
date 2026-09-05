@@ -1,0 +1,61 @@
+{
+  "model": "efficientnet_b0-ordinal",
+  "trained_on": "APTOS 2019 train split, 5-fold CV",
+  "image_size": 456,
+  "preprocessing": "ben-graham circle-crop + gaussian subtraction",
+  "grade_thresholds": [
+    0.61341796875,
+    1.297841796875,
+    2.47509765625,
+    3.2478125
+  ],
+  "qwk": 0.9018480255544166,
+  "confusion_matrix": [
+    [
+      1764,
+      34,
+      7,
+      0,
+      0
+    ],
+    [
+      37,
+      156,
+      171,
+      3,
+      3
+    ],
+    [
+      4,
+      60,
+      744,
+      178,
+      13
+    ],
+    [
+      0,
+      0,
+      64,
+      93,
+      36
+    ],
+    [
+      0,
+      3,
+      81,
+      104,
+      107
+    ]
+  ],
+  "referable": {
+    "threshold": 1.297841796875,
+    "sensitivity": 0.9549428379287155,
+    "specificity": 0.9154022988505747,
+    "tp": 1420,
+    "fp": 184,
+    "tn": 1991,
+    "fn": 67,
+    "roc_auc": 0.9793258044817537
+  },
+  "caveat": "Cross-validated on APTOS only. Not clinical validation, and not evidence of generalization - report IDRiD external validation separately."
+}

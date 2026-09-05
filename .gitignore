@@ -47,3 +47,9 @@ temp/
 *.pth
 datasets/
 local-data/
+
+# Model weights. AGENTS.md: weights are not committed. Fetch them from the
+# Kaggle run's output (see experiments/classification/README.md). model_card.json
+# and oof_predictions.npy are metrics, not weights, and are tracked.
+*.onnx
+*.pt
