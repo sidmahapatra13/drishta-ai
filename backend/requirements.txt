@@ -4,3 +4,10 @@ python-multipart
 pillow
 numpy
 pydantic
+# Inference for the trained DR classifier. OpenCV is not optional and not
+# interchangeable with PIL here: training's Ben Graham preprocessing resizes
+# with cv2's aliasing INTER_LINEAR, and a PIL reimplementation moved the
+# ordinal output by up to 1.83 on real APTOS images - more than a grade
+# boundary. See services/classifier.preprocess.
+onnxruntime
+opencv-python-headless
