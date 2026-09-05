@@ -111,19 +111,6 @@ tests. `services/pipeline.py` orchestrates and does not need to change. The
 demo never breaks while the intelligence is filled in — that is the whole point
 of the skeleton.
 
-## Ground rules
-
-- **Never claim clinical validation.** The defensible claim is benchmark
-  performance, external validation on IDRiD, calibrated confidence, explainable
-  outputs, and a human-in-the-loop workflow.
-- **Grad-CAM shows influence, not lesions.** Never describe a heatmap as proof.
-- **Every number on every slide comes from a real run.** Including the
-  simulation dashboard.
-- **An ungradable image never gets a grade.** Enforced in `services/fusion.py`,
-  not left to the UI.
-- **Neovascularization is out of scope** — no public pixel-level masks exist.
-  Say so rather than omitting it quietly.
-
 ## Tracks
 
 | Owner | Track |
