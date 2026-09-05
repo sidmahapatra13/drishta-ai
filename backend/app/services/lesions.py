@@ -1,17 +1,21 @@
 """Lesion evidence - PS requirement 2.
 
-STUB. Replaced on day 3 by classical morphology (bright-lesion detection for
-exudates, dark-lesion for hemorrhages, top-hat plus candidate filtering for
-microaneurysms), with a multi-class U-Net on the IDRiD segmentation subset as a
-stretch goal if day 2 finishes early.
+STUB, and deliberately silent. Replaced by classical morphology (bright-lesion
+detection for exudates, dark-lesion for hemorrhages, top-hat plus candidate
+filtering for microaneurysms), tuned against the IDRiD segmentation masks
+rather than by eye.
+
+Until then this returns nothing. The earlier stub invented per-class counts,
+which surfaced in two places a judge reads as clinical findings: the lesion
+evidence panel in the UI, and the "Detected evidence: ..." clause that
+`fusion._summarize` appends to the patient summary. Both callers already guard
+on an empty list, so returning one leaves the claim visibly absent instead of
+plausibly wrong - which is the rule this project runs on.
 
 Neovascularization is deliberately absent: no public pixel-level NV masks
 exist, so it is scoped out explicitly rather than faked. Say so on the slide.
 """
 
-import hashlib
-
-import numpy as np
 from PIL import Image
 
 from ..contract import Lesion, LesionType
@@ -26,26 +30,4 @@ def segment_lesions(img: Image.Image, grade: int | None) -> list[Lesion]:
     Counts are detector output, not clinically authoritative lesion counts.
     The UI must label them as such.
     """
-    if grade is None:
-        return []
-
-    rng = np.random.default_rng(
-        int(hashlib.sha256(img.tobytes()).hexdigest()[8:16], 16)
-    )
-
-    lesions: list[Lesion] = []
-    for i, lesion_type in enumerate(SUPPORTED):
-        # More severe grades carry more lesions - keeps the stubbed evidence
-        # consistent with the stubbed grade so the report never contradicts itself.
-        expected = max(grade * 3 - i * 2, 0)
-        count = int(rng.poisson(expected)) if expected else 0
-        lesions.append(
-            Lesion(
-                type=lesion_type,
-                count=count,
-                area_px=int(count * rng.integers(15, 60)) if count else 0,
-                mask_url=None,
-                confidence=round(float(rng.uniform(0.55, 0.85)), 3) if count else 0.0,
-            )
-        )
-    return lesions
+    return []
