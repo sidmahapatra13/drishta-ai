@@ -23,13 +23,41 @@ FOV_UNGRADABLE = 0.45
 SCORE_UNGRADABLE = 0.45
 SCORE_BORDERLINE = 0.70
 
-#: Laplacian variance of a well-focused fundus photograph, used to map the raw
-#: variance onto 0-1. Calibrate against APTOS before the demo.
-FOCUS_REFERENCE_VARIANCE = 500.0
+#: Metrics are measured at this longest side, never at native resolution.
+#: Laplacian variance scales with pixel count, so the same eye photographed at
+#: 4288px and at 640px scores very differently - and a rural programme mixes
+#: camera models. Normalising size first is what makes focus comparable between
+#: devices rather than a measure of which camera took the picture.
+WORK_RESOLUTION = 1024
+
+#: Laplacian variance of a well-focused fundus photograph at WORK_RESOLUTION.
+#: Calibrated on 39 APTOS images spanning all five grades against programmatic
+#: degradations of the same images: at 15.0 every real photograph is kept and
+#: every Gaussian blur of sigma 4 or above is rejected. The valid range is
+#: 12-18; 15 sits in the middle of it.
+#:
+#: The previous value of 500.0 was calibrated against the synthetic test
+#: fixture, whose per-pixel noise gives a variance near 4375 where a real
+#: photograph gives 6-41. It rejected 100% of real fundus images.
+FOCUS_REFERENCE_VARIANCE = 15.0
 
 
 def _to_gray(img: Image.Image) -> np.ndarray:
     return np.asarray(img.convert("L"), dtype=np.float64)
+
+
+def _working(img: Image.Image) -> Image.Image:
+    """Downscale to WORK_RESOLUTION so the measurements mean the same thing on
+    every camera. Enlarging is pointless - it invents no detail - so an image
+    already at or below the working size is measured as it is."""
+    longest = max(img.size)
+    if longest <= WORK_RESOLUTION:
+        return img
+    scale = WORK_RESOLUTION / longest
+    return img.resize(
+        (max(1, round(img.width * scale)), max(1, round(img.height * scale))),
+        Image.BILINEAR,
+    )
 
 
 def _retina_mask(img: Image.Image) -> np.ndarray:
@@ -139,6 +167,7 @@ def assess_quality(img: Image.Image) -> QualityReport:
     Borderline images are the ones worth enhancing (see enhancement.py);
     ungradable images are rejected outright and never reach the classifier.
     """
+    img = _working(img)
     mask = _retina_mask(img)
 
     focus = focus_score(img, mask)

@@ -131,3 +131,15 @@ def test_review_round_trip(tmp_path, monkeypatch):
     with db.session() as conn:
         assert db.review_queue(conn)[0]["review_status"] == "reviewed"
         assert db.get_screening(conn, "s1")["patient_ref"] == "IND-1"
+
+
+def test_enhancement_runs_on_a_borderline_image():
+    """Enhancement was unreachable while the quality gate rejected every real
+    photograph, so this path had never executed. np.asarray on a PIL image is
+    read-only, and the CLAHE step assigns into it.
+    """
+    from app.services import enhancement
+
+    out = enhancement.enhance(synthetic_fundus())
+    assert out.size == synthetic_fundus().size
+    assert out.mode == "RGB"

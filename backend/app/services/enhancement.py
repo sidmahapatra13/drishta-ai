@@ -114,7 +114,9 @@ def enhance(img: Image.Image) -> Image.Image:
     # Apply CLAHE to the green channel's contribution only. The green channel
     # carries the most lesion contrast in fundus photography; equalizing all
     # three independently would shift the colour balance.
-    ycc = np.asarray(Image.fromarray(arr).convert("YCbCr"), dtype=np.uint8)
+    # np.array, not np.asarray: asarray hands back a read-only view of PIL's
+    # buffer and the channel assignment below writes into it.
+    ycc = np.array(Image.fromarray(arr).convert("YCbCr"), dtype=np.uint8)
     ycc[:, :, 0] = _clahe(ycc[:, :, 0])
     arr = np.asarray(Image.fromarray(ycc, mode="YCbCr").convert("RGB"), dtype=np.uint8)
 

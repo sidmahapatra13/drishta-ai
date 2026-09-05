@@ -57,7 +57,12 @@ def analyze_eye(img: Image.Image, eye: Eye, screening_id: str) -> EyeResult:
         # guarantee no prediction is attached.
         return fusion.gate(result)
 
-    prediction = classifier.predict_dr(working)
+    # The network was trained on un-enhanced fundus photographs, so CLAHE output
+    # is an input distribution it has never seen. Preprocessing drift of exactly
+    # this kind measured 1.83 on the ordinal scale - wider than a grade boundary.
+    # Enhancement is for the health worker to look at and for the quality
+    # re-assessment; the classifier reads the image as captured.
+    prediction = classifier.predict_dr(img)
     result.grade = prediction["grade"]
     result.grade_label = prediction["grade_label"]
     result.referable = prediction["referable"]
@@ -67,7 +72,9 @@ def analyze_eye(img: Image.Image, eye: Eye, screening_id: str) -> EyeResult:
 
     result.lesions = lesions.segment_lesions(working, result.grade)
 
-    heatmap = explain.gradcam(working, result.grade)
+    # Grad-CAM has to run on the image the classifier actually read, or the
+    # attention map explains a prediction that was never made.
+    heatmap = explain.gradcam(img, result.grade)
     if heatmap is not None:
         result.gradcam_url = _save(heatmap, screening_id, f"{eye.value}_gradcam")
 
