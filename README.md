@@ -13,18 +13,53 @@ patients in front of a scarce ophthalmologist in priority order.
 It does not replace the ophthalmologist. It brings screening closer to the
 patient and makes each specialist review faster.
 
+## The pipeline
+
+```
+quality → enhance if borderline → gate → grade → calibrate → lesions → Grad-CAM → fuse
+```
+
+Enforced in `backend/app/services/pipeline.py`. An ungradable image stops at the
+gate and never reaches the classifier. At patient level the worse eye drives
+referral.
+
+## Results
+
+EfficientNet-B0 with an ordinal regression head — one continuous severity output
+cut at four tuned boundaries, rather than a 5-class softmax that would treat
+confusing grade 0 for 4 the same as 3 for 4. Five-fold cross-validated on APTOS
+2019 (3,662 images).
+
+| Metric | Value |
+|---|---|
+| Quadratic weighted kappa | **0.902** |
+| Referable sensitivity (grade ≥ 2) | **95.5%** |
+| Referable specificity | 91.5% |
+| Referable ROC-AUC | 0.979 |
+
+Every figure above is read from `matlab/models/model_card.json`, written by the
+training run itself. The referral cut *is* the grade-2 boundary, fitted to clear
+90% sensitivity — in screening a missed referable patient costs more than a
+false alarm — so the grade shown and the referral flag beside it cannot
+disagree.
+
+**This is cross-validation on a public dataset, not clinical validation.**
+External validation on IDRiD (Indian data) is a separate number and is still
+pending.
+
 ## Status
 
-Day-one skeleton. The pipeline runs end to end; the intelligence is being
-filled in behind a frozen contract.
+The pipeline runs end to end; the intelligence is being filled in behind a
+frozen contract.
 
 | Component | State |
 |---|---|
 | Result contract (`backend/app/contract.py`) | **Frozen** — build against this |
 | Quality assessment, enhancement (CLAHE) | **Real** |
 | Quality gate + patient-level fusion | **Real** |
-| DR classifier, lesions, Grad-CAM | Stub — replaced day 2–3 |
-| RAG assistant, deployment simulation | Stub — replaced day 3 |
+| DR classifier | **Trained** — weights released; `services/classifier.py` still returns the stub |
+| Lesions, Grad-CAM | Stub |
+| RAG assistant, deployment simulation | Stub |
 
 Stubs are deterministic: the same image always yields the same result, so demo
 rehearsals reproduce exactly.
@@ -44,7 +79,13 @@ cd frontend && npm install && npm run dev
 ```
 
 ```bash
-cd backend && PYTHONPATH=. ../.venv/bin/python -m pytest tests/ -q   # 8 tests
+cd backend && PYTHONPATH=. ../.venv/bin/python -m pytest tests/ -q   # 9 tests
+```
+
+Model weights are not in git. Fetch the trained network into `matlab/models/`:
+
+```bash
+gh release download model-v1 --dir matlab/models
 ```
 
 ## Layout
@@ -54,6 +95,8 @@ backend/app/contract.py       the frozen result contract — read this first
 backend/app/services/         quality, enhancement, classifier, lesions,
                               explain, fusion, pipeline, rag, simulation
 frontend/src/api.ts           typed mirror of the contract
+experiments/classification/   APTOS training run — script, notebook, OOF preds
+matlab/models/                ONNX network + model_card.json (the metrics)
 matlab/                       MATLAB pipeline (see matlab/README.md)
 simulink/                     deployment model (see simulink/README.md)
 rag_knowledge_base/           clinical documents (see its README)
