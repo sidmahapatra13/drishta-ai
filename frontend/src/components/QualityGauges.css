@@ -1,0 +1,69 @@
+.gauges { display: flex; flex-direction: column; gap: calc(var(--step) * 1.25); }
+
+.gauge {
+  display: grid;
+  grid-template-columns: 92px 1fr 40px;
+  align-items: center;
+  gap: calc(var(--step) * 1.5);
+}
+
+.gauge-name { font-size: var(--t-sm); color: var(--muted); }
+
+.gauge-track {
+  position: relative;
+  height: 8px;
+  overflow: visible;
+  background: var(--sunk);
+  border: 1px solid var(--vessel);
+  border-radius: 2px;
+}
+
+/* Stacking, and why this order.
+ *
+ * The gate tick is drawn always: it is where the metric would be refused, and
+ * a reader should be able to see that without being told a number to remember.
+ *
+ * The refusal band spans zero to the gate and sits UNDER the fill, so it shows
+ * only in the gap a failing metric leaves behind - "this much short of the
+ * line". Stacked over the fill instead it tinted every passing metric brown
+ * for the first third of its track, which reads as partial failure on a
+ * reading that passed comfortably. */
+.gauge-reject {
+  position: absolute;
+  inset: 0 auto 0 0;
+  z-index: 1;
+  background: repeating-linear-gradient(
+    -45deg,
+    color-mix(in srgb, var(--urgent) 30%, transparent) 0 3px,
+    transparent 3px 6px
+  );
+}
+
+.gauge-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  z-index: 2;
+  background: var(--clear);
+  border-radius: 1px;
+}
+
+.gauge-gate {
+  position: absolute;
+  top: -4px;
+  bottom: -4px;
+  z-index: 3;
+  width: 1px;
+  background: var(--urgent);
+}
+
+.gauge[data-failed="true"] .gauge-fill { background: var(--urgent); }
+.gauge[data-failed="true"] .gauge-name { color: var(--sclera); }
+.gauge[data-failed="true"] .gauge-value { color: var(--urgent); }
+
+.gauge-value { font-size: var(--t-sm); text-align: right; color: var(--muted); }
+
+.gauges-key {
+  font-size: var(--t-xs);
+  color: var(--faint);
+  padding-left: calc(92px + var(--step) * 1.5);
+}

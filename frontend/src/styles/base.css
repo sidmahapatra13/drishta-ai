@@ -1,0 +1,47 @@
+@import "./tokens.css";
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--vitreous);
+  color: var(--sclera);
+  font-family: var(--sans);
+  font-size: var(--t-base);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3 { margin: 0; font-weight: 600; letter-spacing: -0.01em; }
+p { margin: 0; }
+
+/* One focus treatment for the whole interface. A screening room is not a place
+ * to hunt for where the keyboard is. */
+:focus-visible { outline: 2px solid var(--disc); outline-offset: 2px; }
+
+input[type="text"],
+input[type="number"],
+input[type="file"],
+select {
+  width: 100%;
+  background: var(--sunk);
+  border: 1px solid var(--vessel);
+  border-radius: var(--radius);
+  color: var(--sclera);
+  font-family: var(--mono);
+  font-size: var(--t-sm);
+  padding: calc(var(--step) * 1.25);
+}
+
+button { font-family: var(--sans); cursor: pointer; }
+button:disabled { opacity: 0.45; cursor: not-allowed; }
+
+figure { margin: 0; }
+img { max-width: 100%; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

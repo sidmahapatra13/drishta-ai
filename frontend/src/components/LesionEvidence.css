@@ -1,0 +1,7 @@
+.lesions { display: flex; flex-direction: column; gap: var(--step); }
+.lesions-title { font-size: var(--t-sm); color: var(--muted); font-weight: 500; }
+.lesions table { width: 100%; border-collapse: collapse; }
+.lesions td { padding: 6px 0; border-bottom: 1px solid var(--vessel); font-size: var(--t-sm); }
+.lesions-type { text-transform: capitalize; }
+.lesions-count { text-align: right; }
+.lesions-caveat { font-size: var(--t-xs); color: var(--faint); }

@@ -1,0 +1,35 @@
+.queue { width: 100%; border-collapse: collapse; }
+
+.queue th {
+  text-align: left;
+  font-family: var(--mono);
+  font-size: var(--t-xs);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--faint);
+  font-weight: 400;
+  padding: 0 0 var(--step);
+  border-bottom: 1px solid var(--vessel);
+}
+
+.queue td {
+  padding: calc(var(--step) * 1.5) 0;
+  border-bottom: 1px solid var(--vessel);
+  font-size: var(--t-sm);
+}
+
+.queue tbody tr:hover { background: color-mix(in srgb, var(--sclera) 3%, transparent); }
+.queue-grade { font-size: var(--t-md); }
+.queue-status { color: var(--muted); }
+.queue-action { text-align: right; }
+
+.queue-empty { color: var(--muted); font-size: var(--t-sm); }
+
+button.link {
+  background: none;
+  border: none;
+  color: var(--disc);
+  font-size: var(--t-sm);
+  padding: 0;
+}
+button.link:hover { text-decoration: underline; }

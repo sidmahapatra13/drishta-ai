@@ -1,0 +1,58 @@
+/* Design tokens.
+ *
+ * The palette is taken from fundus anatomy rather than a brand deck: the near
+ * black of the vitreous surround every retinal photograph sits on, the
+ * orange-red of the retina itself, the cream-yellow of the optic disc.
+ *
+ * The interface is dark because that is how retinal images are actually read -
+ * a lit disc against a dark surround, the way an ophthalmologist views them -
+ * not as a style choice.
+ */
+
+@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap");
+
+:root {
+  --vitreous: #0b0e14;      /* page ground */
+  --panel: #141a23;         /* raised surface */
+  --sunk: #0e131b;          /* recessed: gauge tracks, inputs */
+  --vessel: #1f2937;        /* borders, dividers */
+  --sclera: #f2efe9;        /* primary text */
+  --muted: #8b97a8;         /* secondary text */
+  --faint: #5b6675;         /* tertiary: axis labels, disabled */
+
+  --retina: #c9552e;        /* referable */
+  --urgent: #e0603a;        /* grade 4, gate failure */
+  --disc: #e8c77a;          /* borderline, recapture */
+  --clear: #4fa88b;         /* non-referable, pass */
+
+  /* IBM Plex: built for technical and instrument contexts, and its Devanagari
+   * companion covers the regional-language support on the roadmap. */
+  --sans: "IBM Plex Sans", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, monospace;
+
+  /* One modular scale, ratio 1.25, rather than sizes chosen per component.
+   * Anything not on this scale is a mistake, not a decision. */
+  --t-xs: 11px;
+  --t-sm: 13px;
+  --t-base: 15px;
+  --t-md: 17px;
+  --t-lg: 21px;
+  --t-xl: 27px;
+  --t-2xl: 34px;
+  --t-3xl: 42px;
+
+  --step: 8px;
+  --radius: 4px;
+  --measure: 62ch;          /* line length ceiling for prose */
+
+  color-scheme: dark;
+}
+
+/* Every measured value is an instrument reading, so it is set in mono and
+ * tabular-aligned. Nothing that is not a measurement uses this face - that is
+ * the rule the whole interface's legibility rests on. */
+.readout {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}

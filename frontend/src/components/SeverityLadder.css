@@ -1,0 +1,57 @@
+.ladder { margin: 0; padding: 0; list-style: none; }
+
+.ladder-row {
+  display: grid;
+  grid-template-columns: 28px 1fr auto;
+  align-items: center;
+  gap: calc(var(--step) * 1.5);
+  padding: calc(var(--step) * 1.25) calc(var(--step) * 1.5);
+  color: var(--muted);
+  border-left: 2px solid var(--vessel);
+}
+
+.ladder-num { font-size: var(--t-md); }
+.ladder-label { font-size: var(--t-sm); }
+
+.ladder-row[data-active="true"] {
+  color: var(--sclera);
+  border-left-color: var(--reading);
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--reading) 16%, transparent),
+    transparent 75%
+  );
+}
+.ladder-row[data-active="true"] .ladder-num {
+  font-size: var(--t-lg);
+  font-weight: 600;
+  color: var(--reading);
+}
+.ladder-row[data-active="true"] .ladder-label { font-weight: 500; }
+
+.ladder-here {
+  font-family: var(--mono);
+  font-size: var(--t-xs);
+  letter-spacing: 0.08em;
+  color: var(--reading);
+}
+
+/* The threshold is a real boundary, so it is drawn as a real line, labelled in
+ * place rather than in a footnote the reader has to connect back to it. */
+.ladder-threshold {
+  display: flex;
+  align-items: center;
+  gap: var(--step);
+  margin: 2px 0;
+  color: var(--retina);
+  font-family: var(--mono);
+  font-size: var(--t-xs);
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+}
+.ladder-threshold::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--retina);
+}

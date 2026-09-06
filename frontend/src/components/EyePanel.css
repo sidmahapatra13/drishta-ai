@@ -1,0 +1,40 @@
+.eye { display: flex; flex-direction: column; gap: calc(var(--step) * 2); }
+
+.eye-head { display: flex; align-items: baseline; gap: var(--step); }
+/* Sentence case, not title case: 'Left eye', never 'Left Eye'. */
+.eye-name { font-size: var(--t-md); }
+.eye-name::first-letter { text-transform: uppercase; }
+.eye-enhanced {
+  font-size: var(--t-xs);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--clear);
+}
+
+.eye-figures { display: grid; grid-template-columns: 1fr 1fr; gap: var(--step); }
+.eye-figures[data-single="true"] { grid-template-columns: 1fr; max-width: 50%; }
+
+.eye-figures img {
+  width: 100%;
+  display: block;
+  border-radius: var(--radius);
+  background: #000;
+}
+.eye-figures figcaption {
+  font-size: var(--t-xs);
+  color: var(--faint);
+  margin-top: 6px;
+  line-height: 1.4;
+}
+
+@media (max-width: 900px) {
+  .eye-figures[data-single="true"] { max-width: 100%; }
+}
+
+.eye-note {
+  font-size: var(--t-xs);
+  color: var(--faint);
+  max-width: var(--measure);
+  border-left: 2px solid var(--vessel);
+  padding-left: var(--step);
+}

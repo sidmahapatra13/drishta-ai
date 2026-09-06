@@ -1,0 +1,38 @@
+.recapture {
+  border: 1px solid var(--disc);
+  border-left-width: 3px;
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--disc) 7%, transparent);
+  padding: calc(var(--step) * 2.5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--step);
+}
+
+.recapture-eye {
+  font-size: var(--t-xs);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--disc);
+}
+
+.recapture-title { font-size: var(--t-lg); color: var(--disc); }
+.recapture[data-prominent="true"] .recapture-title { font-size: var(--t-2xl); }
+
+.recapture-action {
+  font-size: var(--t-md);
+  max-width: var(--measure);
+}
+
+.recapture-rule {
+  font-size: var(--t-sm);
+  color: var(--muted);
+  max-width: var(--measure);
+}
+
+.recapture-detail {
+  font-size: var(--t-xs);
+  color: var(--faint);
+  border-top: 1px solid color-mix(in srgb, var(--disc) 25%, transparent);
+  padding-top: var(--step);
+}

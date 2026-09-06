@@ -89,12 +89,20 @@ Model weights are not in git. Fetch the trained network into `matlab/models/`:
 gh release download model-v1 --dir matlab/models
 ```
 
-Neither are the demo images. Five real APTOS captures covering every path the
-pipeline can take — not referable, referable, a soft capture that goes through
-enhancement, an urgent case, and one the quality gate refuses:
+Neither are the demo images. Six real APTOS captures covering every path the
+pipeline can take — not referable, referable, severe, urgent, a soft capture
+that goes through enhancement, and one the quality gate refuses:
 
 ```bash
 python scripts/fetch_demo_images.py
+```
+
+The quality gate's focus reference is fitted against real photographs, not the
+synthetic test fixture. To refit it — or to check the fit still holds:
+
+```bash
+python scripts/fetch_calibration_images.py   # 40 APTOS captures, 8 per grade
+python scripts/fit_focus_reference.py        # reports the valid interval
 ```
 
 ## Layout
@@ -104,8 +112,10 @@ backend/app/contract.py       the frozen result contract — read this first
 backend/app/services/         quality, enhancement, classifier, lesions,
                               explain, fusion, pipeline, rag, simulation
 frontend/src/api.ts           typed mirror of the contract
+frontend/src/components/      one component per file, CSS beside each
+frontend/src/styles/          design tokens and type scale
 experiments/classification/   APTOS training run — script, notebook, OOF preds
-scripts/fetch_demo_images.py  builds the demo set from real APTOS captures
+scripts/                      demo set, quality-gate calibration set and fit
 matlab/models/                ONNX network + model_card.json (the metrics)
 matlab/                       MATLAB pipeline (see matlab/README.md)
 simulink/                     deployment model (see simulink/README.md)

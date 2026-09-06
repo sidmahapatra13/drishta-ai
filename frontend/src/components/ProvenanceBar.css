@@ -1,0 +1,6 @@
+.provenance { font-size: var(--t-xs); color: var(--faint); }
+.provenance[data-stub="true"] {
+  color: var(--urgent);
+  letter-spacing: 0.08em;
+  font-weight: 600;
+}

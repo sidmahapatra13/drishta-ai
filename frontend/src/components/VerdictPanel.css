@@ -1,0 +1,51 @@
+.verdict { display: flex; flex-direction: column; gap: calc(var(--step) * 2.5); }
+
+.verdict-head { display: flex; flex-direction: column; gap: 6px; }
+
+.verdict-grade {
+  font-size: var(--t-2xl);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+
+.verdict-meta {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--step) * 1.5);
+  font-size: var(--t-sm);
+  color: var(--muted);
+}
+
+.tag {
+  font-family: var(--mono);
+  font-size: var(--t-xs);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 2px;
+  border: 1px solid currentColor;
+  white-space: nowrap;
+}
+.tag.referable { color: var(--retina); }
+.tag.urgent { color: var(--urgent); background: color-mix(in srgb, var(--urgent) 12%, transparent); }
+.tag.clear { color: var(--clear); }
+.tag.pending { color: var(--disc); }
+
+.verdict-next {
+  display: flex;
+  flex-direction: column;
+  gap: var(--step);
+  border-top: 1px solid var(--vessel);
+  padding-top: calc(var(--step) * 2);
+  font-size: var(--t-sm);
+  max-width: var(--measure);
+}
+
+/* Labelled as the derived quantity it is. The model emits one continuous
+ * severity value, not five probabilities, so this is a distribution derived
+ * from that scalar - never a probability of disease. */
+.verdict-likelihood { font-size: var(--t-xs); color: var(--faint); }
+.verdict-uncal { color: var(--disc); }
+
+.verdict-summary { font-size: var(--t-sm); color: var(--muted); max-width: var(--measure); }

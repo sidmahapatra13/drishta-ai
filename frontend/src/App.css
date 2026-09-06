@@ -1,0 +1,39 @@
+@import "./styles/base.css";
+
+.shell { max-width: 1320px; margin: 0 auto; padding: calc(var(--step) * 4); }
+
+.masthead {
+  display: flex;
+  align-items: baseline;
+  gap: calc(var(--step) * 2);
+  flex-wrap: wrap;
+  border-bottom: 1px solid var(--vessel);
+  padding-bottom: calc(var(--step) * 2);
+}
+.masthead h1 { font-size: var(--t-lg); }
+.masthead-flow { color: var(--faint); font-size: var(--t-sm); }
+
+.tabs {
+  display: flex;
+  gap: calc(var(--step) * 3);
+  margin: calc(var(--step) * 2) 0 calc(var(--step) * 4);
+  border-bottom: 1px solid var(--vessel);
+}
+.tabs button {
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--muted);
+  font-size: var(--t-sm);
+  padding: 0 0 calc(var(--step) * 1.5);
+  margin-bottom: -1px;
+}
+.tabs button[aria-selected="true"] { color: var(--sclera); border-bottom-color: var(--retina); }
+.tabs button:hover:not([aria-selected="true"]) { color: var(--sclera); }
+
+.main { display: flex; flex-direction: column; gap: calc(var(--step) * 3); }
+
+@media (max-width: 760px) {
+  .shell { padding: calc(var(--step) * 2); }
+  .tabs { gap: calc(var(--step) * 2); }
+}

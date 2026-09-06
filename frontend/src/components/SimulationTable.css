@@ -1,0 +1,4 @@
+.sim { display: flex; flex-direction: column; gap: var(--step); }
+.sim-bottleneck { color: var(--disc); }
+.sim-source { font-size: var(--t-xs); color: var(--faint); margin-top: var(--step); }
+.sim-note { font-size: var(--t-xs); color: var(--faint); max-width: var(--measure); }
