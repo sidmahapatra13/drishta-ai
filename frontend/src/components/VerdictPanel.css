@@ -46,6 +46,11 @@
  * severity value, not five probabilities, so this is a distribution derived
  * from that scalar - never a probability of disease. */
 .verdict-likelihood { font-size: var(--t-xs); color: var(--faint); }
-.verdict-uncal { color: var(--disc); }
+
+/* The one genuine posterior in the system, so it is set above the derived
+ * distribution and in primary ink while that stays tertiary. The size gap is
+ * the claim: these two numbers do not carry the same weight of evidence. */
+.verdict-referral { font-size: var(--t-base); color: var(--sclera); }
+.verdict-provenance { font-size: var(--t-xs); color: var(--faint); }
 
 .verdict-summary { font-size: var(--t-sm); color: var(--muted); max-width: var(--measure); }

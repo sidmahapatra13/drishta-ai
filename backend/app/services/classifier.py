@@ -24,9 +24,11 @@ from PIL import Image
 
 from ..contract import GRADE_LABELS, REFERABLE_FROM_GRADE
 
-MODEL_DIR = Path(__file__).resolve().parents[3] / "matlab" / "models"
+ROOT = Path(__file__).resolve().parents[3]
+MODEL_DIR = ROOT / "matlab" / "models"
 MODEL_PATH = MODEL_DIR / "dr_effnetb0_ordinal.onnx"
 CARD_PATH = MODEL_DIR / "model_card.json"
+CALIBRATION_PATH = ROOT / "experiments" / "calibration" / "calibration.json"
 
 #: Training resolution. Baked into the exported graph's spatial dimensions.
 SIZE = 456
@@ -202,9 +204,20 @@ def predict_dr(img: Image.Image) -> dict:
     }
 
 
-#: Temperature for the scaling below. 1.0 is a no-op, and is the honest value
-#: until one is fitted on the validation folds from oof_predictions.npy.
-TEMPERATURE = 1.0
+#: Temperature for the scaling below, fitted by `scripts/fit_calibration.py`
+#: against the 3,662 out-of-fold predictions. Below 1.0, so the displayed grade
+#: distribution was mildly under-confident rather than over-confident - unusual,
+#: and a consequence of `grade_likelihood` being a fixed-spread softmax rather
+#: than a learned posterior. Re-run that script rather than editing this by hand;
+#: `test_calibration.py` pins the two together.
+TEMPERATURE = 0.949349
+
+#: Platt scaling of the ordinal severity score onto P(referable), from the same
+#: run: `sigmoid(PLATT_A * raw + PLATT_B)`. Measured ECE 0.018 (5-fold CV),
+#: Brier 0.051. Unlike `grade_likelihood` this *is* a posterior, which is why it
+#: is the only number in the system allowed to be called a probability.
+PLATT_A = 3.679671
+PLATT_B = -5.087479
 
 #: Whether anything downstream may describe this output as calibrated. Derived
 #: rather than asserted: `calibrated` was previously set True on every result
@@ -215,13 +228,28 @@ TEMPERATURE = 1.0
 IS_CALIBRATED = TEMPERATURE != 1.0
 
 
-def calibrate(probabilities: list[float], temperature: float = TEMPERATURE) -> list[float]:
-    """Temperature scaling.
+def referral_probability(raw: float) -> float:
+    """P(this patient is referable), calibrated.
 
-    Fitting the real temperature needs only oof_predictions.npy and train.csv -
-    no GPU - and lands with the ECE figure and reliability diagram. Until then
-    this is deliberately a no-op that says so through IS_CALIBRATED rather than
-    a plausible-looking constant.
+    The one genuine posterior in the module. `grade_likelihood` derives a
+    display distribution from a scalar and must never be called a probability;
+    this is a two-parameter logistic fitted against the actual `grade >= 2`
+    outcome on held-out predictions, and is the number a clinician acts on.
+
+    Note it is not thresholded at 0.5. The referral cut is the grade-2 boundary,
+    tuned for screening sensitivity, and lands at P = 0.42 - the system refers
+    patients it puts below even odds, on purpose.
+    """
+    return float(1.0 / (1.0 + np.exp(-(PLATT_A * raw + PLATT_B))))
+
+
+def calibrate(probabilities: list[float], temperature: float = TEMPERATURE) -> list[float]:
+    """Temperature scaling of the derived grade distribution.
+
+    Re-softmaxing log(p)/T is exactly the pseudo-logits of `grade_likelihood`
+    divided by T, so this applies the temperature that script fitted. It sharpens
+    the five displayed bars; it does not make them a posterior, and the UI still
+    labels them derived. For a real probability see `referral_probability`.
     """
     logits = np.log(np.clip(probabilities, 1e-9, 1.0)) / temperature
     exp = np.exp(logits - logits.max())

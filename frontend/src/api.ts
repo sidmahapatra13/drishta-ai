@@ -39,6 +39,7 @@ export interface EyeResult {
   confidence: number | null;
   calibrated: boolean;
   probabilities: number[] | null;
+  referral_probability: number | null;
   lesions: Lesion[];
   gradcam_url: string | null;
   image_url: string | null;
@@ -58,6 +59,7 @@ export interface PatientResult {
   referable: boolean | null;
   priority: Priority | null;
   confidence: number | null;
+  referral_probability: number | null;
   recapture_required: boolean;
   recapture_eyes: Eye[];
   summary: string;

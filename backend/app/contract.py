@@ -99,6 +99,12 @@ class EyeResult(BaseModel):
     calibrated: bool = False
     probabilities: list[float] | None = None
 
+    #: P(referable), Platt-scaled on held-out predictions. The only field here
+    #: that is a genuine probability: `probabilities` is a display distribution
+    #: derived from one scalar and is labelled as such. Optional, so a checkout
+    #: without a fitted calibration still serialises.
+    referral_probability: float | None = Field(default=None, ge=0, le=1)
+
     lesions: list[Lesion] = []
     gradcam_url: str | None = None
     overlay_url: str | None = None
@@ -132,6 +138,7 @@ class PatientResult(BaseModel):
     referable: bool | None = None
     priority: Priority | None = None
     confidence: float | None = None
+    referral_probability: float | None = Field(default=None, ge=0, le=1)
 
     recapture_required: bool = False
     recapture_eyes: list[Eye] = []

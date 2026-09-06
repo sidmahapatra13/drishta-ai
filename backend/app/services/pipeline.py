@@ -70,6 +70,12 @@ def analyze_eye(img: Image.Image, eye: Eye, screening_id: str) -> EyeResult:
     result.calibrated = classifier.IS_CALIBRATED
     result.confidence = max(result.probabilities)
 
+    # The calibrated posterior, from the same score that produced the grade, so
+    # the two can never disagree about the same eye.
+    result.referral_probability = classifier.referral_probability(
+        prediction["raw_logit"]
+    )
+
     result.lesions = lesions.segment_lesions(working, result.grade)
 
     # Grad-CAM has to run on the image the classifier actually read, or the

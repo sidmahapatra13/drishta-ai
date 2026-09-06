@@ -42,6 +42,7 @@ def gate(result: EyeResult) -> EyeResult:
         result.referable = None
         result.confidence = None
         result.probabilities = None
+        result.referral_probability = None
         result.lesions = []
         result.recapture_required = True
         if not result.recapture_reason:
@@ -90,6 +91,7 @@ def fuse(
     # Report the confidence of the eye that actually drove the decision, not an
     # average across eyes that may disagree.
     result.confidence = worst.confidence
+    result.referral_probability = worst.referral_probability
 
     result.summary = _summarize(result, worst)
     return result

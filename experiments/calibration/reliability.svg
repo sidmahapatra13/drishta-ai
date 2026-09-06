@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="640" viewBox="0 0 720 640" font-family="IBM Plex Sans, system-ui, sans-serif">
+<rect width="720" height="640" fill="#0b0e14"/>
+<rect x="92" y="96" width="440" height="440" fill="#141a23"/>
+<text x="92" y="40" fill="#f2efe9" font-size="21" font-weight="600">Referral confidence is calibrated</text>
+<text x="92" y="64" fill="#8b97a8" font-size="13">Observed referral rate against predicted probability &#183; APTOS out-of-fold, n = 3,662</text>
+<text x="558" y="118" fill="#8b97a8" font-size="11" letter-spacing="0.08em">ECE</text>
+<text x="558" y="154" fill="#4fa88b" font-size="34" font-family="IBM Plex Mono, ui-monospace, monospace" font-weight="600">0.018</text>
+<text x="558" y="174" fill="#5b6675" font-size="11">5-fold CV</text>
+<text x="558" y="208" fill="#8b97a8" font-size="11" letter-spacing="0.08em">BRIER</text>
+<text x="558" y="234" fill="#f2efe9" font-size="21" font-family="IBM Plex Mono, ui-monospace, monospace">0.051</text>
+<line x1="92.0" y1="96" x2="92.0" y2="536" stroke="#1f2937" stroke-width="1"/>
+<line x1="92" y1="536.0" x2="532" y2="536.0" stroke="#1f2937" stroke-width="1"/>
+<text x="92.0" y="558" fill="#8b97a8" font-size="12" text-anchor="middle" font-family="IBM Plex Mono, ui-monospace, monospace">0.00</text>
+<text x="80" y="540.0" fill="#8b97a8" font-size="12" text-anchor="end" font-family="IBM Plex Mono, ui-monospace, monospace">0.00</text>
+<line x1="202.0" y1="96" x2="202.0" y2="536" stroke="#1f2937" stroke-width="1"/>
+<line x1="92" y1="426.0" x2="532" y2="426.0" stroke="#1f2937" stroke-width="1"/>
+<text x="202.0" y="558" fill="#8b97a8" font-size="12" text-anchor="middle" font-family="IBM Plex Mono, ui-monospace, monospace">0.25</text>
+<text x="80" y="430.0" fill="#8b97a8" font-size="12" text-anchor="end" font-family="IBM Plex Mono, ui-monospace, monospace">0.25</text>
+<line x1="312.0" y1="96" x2="312.0" y2="536" stroke="#1f2937" stroke-width="1"/>
+<line x1="92" y1="316.0" x2="532" y2="316.0" stroke="#1f2937" stroke-width="1"/>
+<text x="312.0" y="558" fill="#8b97a8" font-size="12" text-anchor="middle" font-family="IBM Plex Mono, ui-monospace, monospace">0.50</text>
+<text x="80" y="320.0" fill="#8b97a8" font-size="12" text-anchor="end" font-family="IBM Plex Mono, ui-monospace, monospace">0.50</text>
+<line x1="422.0" y1="96" x2="422.0" y2="536" stroke="#1f2937" stroke-width="1"/>
+<line x1="92" y1="206.0" x2="532" y2="206.0" stroke="#1f2937" stroke-width="1"/>
+<text x="422.0" y="558" fill="#8b97a8" font-size="12" text-anchor="middle" font-family="IBM Plex Mono, ui-monospace, monospace">0.75</text>
+<text x="80" y="210.0" fill="#8b97a8" font-size="12" text-anchor="end" font-family="IBM Plex Mono, ui-monospace, monospace">0.75</text>
+<line x1="532.0" y1="96" x2="532.0" y2="536" stroke="#1f2937" stroke-width="1"/>
+<line x1="92" y1="96.0" x2="532" y2="96.0" stroke="#1f2937" stroke-width="1"/>
+<text x="532.0" y="558" fill="#8b97a8" font-size="12" text-anchor="middle" font-family="IBM Plex Mono, ui-monospace, monospace">1.00</text>
+<text x="80" y="100.0" fill="#8b97a8" font-size="12" text-anchor="end" font-family="IBM Plex Mono, ui-monospace, monospace">1.00</text>
+<line x1="92" y1="536.0" x2="532" y2="96.0" stroke="#5b6675" stroke-width="2" stroke-dasharray="5 5"/>
+<text x="188.8" y="423.2" fill="#5b6675" font-size="12" transform="rotate(-45 188.8 423.2)" text-anchor="middle">perfect calibration</text>
+<line x1="278.0" y1="96" x2="278.0" y2="536" stroke="#c9552e" stroke-width="2" stroke-dasharray="4 4"/>
+<text x="286.0" y="116" fill="#c9552e" font-size="12" font-weight="600">referred from 0.42 up</text>
+<text x="286.0" y="134" fill="#8b97a8" font-size="11">a miss costs more than a false alarm</text>
+<circle cx="96.0" cy="534.8" r="14.0" fill="#4fa88b" fill-opacity="0.85" stroke="#141a23" stroke-width="2"/>
+<circle cx="134.4" cy="486.3" r="5.8" fill="#4fa88b" fill-opacity="0.85" stroke="#141a23" stroke-width="2"/>
+<circle cx="164.2" cy="454.1" r="5.5" fill="#4fa88b" fill-opacity="0.85" stroke="#141a23" stroke-width="2"/>
+<circle cx="195.6" cy="358.3" r="5.7" fill="#4fa88b" fill-opacity="0.85" stroke="#141a23" stroke-width="2"/>
+<circle cx="223.1" cy="429.3" r="5.3" fill="#4fa88b" fill-opacity="0.85" stroke="#141a23" stroke-width="2"/>
+<circle cx="250.2" cy="396.5" r="5.5" fill="#4fa88b" fill-opacity="0.85" stroke="#141a23" stroke-width="2"/>
+<circle cx="285.0" cy="336.0" r="5.6" fill="#4fa88b" fill-opacity="0.85" stroke="#141a23" stroke-width="2"/>
+<circle cx="310.4" cy="250.6" r="5.4" fill="#4fa88b" fill-opacity="0.85" stroke="#141a23" stroke-width="2"/>
+<circle cx="343.7" cy="321.1" r="5.5" fill="#4fa88b" fill-opacity="0.85" stroke="#141a23" stroke-width="2"/>
+<circle cx="371.8" cy="251.3" r="5.9" fill="#4fa88b" fill-opacity="0.85" stroke="#141a23" stroke-width="2"/>
+<circle cx="401.5" cy="211.0" r="6.2" fill="#4fa88b" fill-opacity="0.85" stroke="#141a23" stroke-width="2"/>
+<circle cx="429.8" cy="172.7" r="6.5" fill="#4fa88b" fill-opacity="0.85" stroke="#141a23" stroke-width="2"/>
+<circle cx="460.2" cy="151.8" r="6.7" fill="#4fa88b" fill-opacity="0.85" stroke="#141a23" stroke-width="2"/>
+<circle cx="490.1" cy="139.8" r="7.4" fill="#4fa88b" fill-opacity="0.85" stroke="#141a23" stroke-width="2"/>
+<circle cx="524.3" cy="110.0" r="11.0" fill="#4fa88b" fill-opacity="0.85" stroke="#141a23" stroke-width="2"/>
+<text x="312" y="588" fill="#f2efe9" font-size="13" text-anchor="middle">Predicted probability of referable DR</text>
+<text x="28" y="316" fill="#f2efe9" font-size="13" text-anchor="middle" transform="rotate(-90 28 316)">Observed referral rate</text>
+<text x="558" y="306" fill="#8b97a8" font-size="11" letter-spacing="0.08em">BIN SIZE</text>
+<circle cx="574" cy="336" r="5.7" fill="#4fa88b" fill-opacity="0.85" stroke="#141a23" stroke-width="2"/>
+<text x="596" y="340" fill="#8b97a8" font-size="11" font-family="IBM Plex Mono, ui-monospace, monospace">50</text>
+<circle cx="574" cy="378" r="9.2" fill="#4fa88b" fill-opacity="0.85" stroke="#141a23" stroke-width="2"/>
+<text x="596" y="382" fill="#8b97a8" font-size="11" font-family="IBM Plex Mono, ui-monospace, monospace">500</text>
+<circle cx="574" cy="420" r="14.0" fill="#4fa88b" fill-opacity="0.85" stroke="#141a23" stroke-width="2"/>
+<text x="596" y="424" fill="#8b97a8" font-size="11" font-family="IBM Plex Mono, ui-monospace, monospace">1,815</text>
+<text x="92" y="618" fill="#5b6675" font-size="11">Platt scaling on the ordinal severity score &#183; 15 equal-width bins &#183; cross-validation on APTOS, not clinical validation</text>
+</svg>

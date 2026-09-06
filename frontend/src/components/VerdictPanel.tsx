@@ -64,12 +64,18 @@ export function VerdictPanel({ result }: { result: PatientResult }) {
             ? "Queued for ophthalmologist review. The specialist confirms or overrides this result."
             : "No referral indicated at this screening. Repeat at the next routine interval."}
         </p>
+        {result.referral_probability !== null && (
+          <p className="verdict-referral readout">
+            {pct(result.referral_probability)} likely referable
+            <span className="verdict-provenance">
+              {" "}
+              calibrated on held-out predictions
+            </span>
+          </p>
+        )}
         {result.confidence !== null && (
           <p className="verdict-likelihood readout">
             grade likelihood (derived) {pct(result.confidence)}
-            {!result.left?.calibrated && !result.right?.calibrated && (
-              <span className="verdict-uncal"> · not yet calibrated</span>
-            )}
           </p>
         )}
       </div>
