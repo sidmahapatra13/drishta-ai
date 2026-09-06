@@ -89,6 +89,14 @@ Model weights are not in git. Fetch the trained network into `matlab/models/`:
 gh release download model-v1 --dir matlab/models
 ```
 
+Neither are the demo images. Five real APTOS captures covering every path the
+pipeline can take — not referable, referable, a soft capture that goes through
+enhancement, an urgent case, and one the quality gate refuses:
+
+```bash
+python scripts/fetch_demo_images.py
+```
+
 ## Layout
 
 ```
@@ -97,6 +105,7 @@ backend/app/services/         quality, enhancement, classifier, lesions,
                               explain, fusion, pipeline, rag, simulation
 frontend/src/api.ts           typed mirror of the contract
 experiments/classification/   APTOS training run — script, notebook, OOF preds
+scripts/fetch_demo_images.py  builds the demo set from real APTOS captures
 matlab/models/                ONNX network + model_card.json (the metrics)
 matlab/                       MATLAB pipeline (see matlab/README.md)
 simulink/                     deployment model (see simulink/README.md)
