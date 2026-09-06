@@ -80,7 +80,7 @@ cd frontend && npm install && npm run dev
 ```
 
 ```bash
-cd backend && PYTHONPATH=. ../.venv/bin/python -m pytest tests/ -q   # 23 tests
+cd backend && PYTHONPATH=. ../.venv/bin/python -m pytest tests/ -q   # 39 tests
 ```
 
 Model weights are not in git. Fetch the trained network into `matlab/models/`:
