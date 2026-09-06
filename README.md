@@ -44,8 +44,33 @@ false alarm — so the grade shown and the referral flag beside it cannot
 disagree.
 
 **This is cross-validation on a public dataset, not clinical validation.**
-External validation on IDRiD (Indian data) is a separate number and is still
-pending.
+
+## Does it transfer?
+
+The model was trained on APTOS alone, then graded all 516 images of IDRiD — an
+Indian dataset, a different camera and a different clinic — none of which it had
+seen. The two numbers are reported side by side and never merged.
+
+| | APTOS (5-fold CV) | IDRiD (external) |
+|---|---|---|
+| Quadratic weighted kappa | 0.902 | **0.746** |
+| Referable sensitivity | 95.5% | **83.9%** |
+| Referable specificity | 91.5% | **87.6%** |
+| Referable ROC-AUC | 0.979 | **0.932** |
+
+What holds is the ranking: ROC-AUC falls only 0.047, so the model still orders
+patients by severity on a population it has never seen. What degrades is where
+the cut points sit — sensitivity drops 11.6 points, because thresholds fitted to
+APTOS's 41% referable prevalence meet IDRiD's 63%. That is what external
+validation is for, and it is why one number is never quoted for both.
+
+Confidence is calibrated on APTOS by Platt scaling: **ECE 0.018** (5-fold
+cross-validated, n = 3,662). That calibration is population-specific and does
+not transfer — measured at **ECE 0.092** on IDRiD, under-predicting referral by
+7.9 points. It is reported, not silently refitted.
+
+Full records and figures in `experiments/validation/` and
+`experiments/calibration/`.
 
 ## Status
 
@@ -115,7 +140,10 @@ frontend/src/api.ts           typed mirror of the contract
 frontend/src/components/      one component per file, CSS beside each
 frontend/src/styles/          design tokens and type scale
 experiments/classification/   APTOS training run — script, notebook, OOF preds
-scripts/                      demo set, quality-gate calibration set and fit
+experiments/calibration/      fitted calibration + reliability diagram
+experiments/validation/       IDRiD external validation + comparison figure
+scripts/                      demo set, calibration set, quality-gate and
+                              confidence fits, external validation
 matlab/models/                ONNX network + model_card.json (the metrics)
 matlab/                       MATLAB pipeline (see matlab/README.md)
 simulink/                     deployment model (see simulink/README.md)

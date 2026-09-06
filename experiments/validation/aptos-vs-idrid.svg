@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="780" height="430" viewBox="0 0 780 430" font-family="IBM Plex Sans, system-ui, sans-serif">
+<rect width="780" height="430" fill="#0b0e14"/>
+<text x="32" y="40" fill="#f2efe9" font-size="21" font-weight="600">What survives a change of dataset</text>
+<text x="32" y="64" fill="#8b97a8" font-size="13">Trained on APTOS, tested on 516 IDRiD images it has never seen &#183; the two are never merged</text>
+<circle cx="38" cy="88" r="6" fill="#e8c77a"/>
+<text x="52" y="92" fill="#8b97a8" font-size="12">APTOS, 5-fold cross-validated</text>
+<circle cx="288" cy="88" r="6" fill="#4fa88b"/>
+<text x="302" y="92" fill="#8b97a8" font-size="12">IDRiD, external</text>
+<line x1="250.0" y1="104" x2="250.0" y2="356" stroke="#1f2937" stroke-width="1"/>
+<text x="250.0" y="374" fill="#5b6675" font-size="11" text-anchor="middle" font-family="IBM Plex Mono, ui-monospace, monospace">0.5</text>
+<line x1="338.0" y1="104" x2="338.0" y2="356" stroke="#1f2937" stroke-width="1"/>
+<text x="338.0" y="374" fill="#5b6675" font-size="11" text-anchor="middle" font-family="IBM Plex Mono, ui-monospace, monospace">0.6</text>
+<line x1="426.0" y1="104" x2="426.0" y2="356" stroke="#1f2937" stroke-width="1"/>
+<text x="426.0" y="374" fill="#5b6675" font-size="11" text-anchor="middle" font-family="IBM Plex Mono, ui-monospace, monospace">0.7</text>
+<line x1="514.0" y1="104" x2="514.0" y2="356" stroke="#1f2937" stroke-width="1"/>
+<text x="514.0" y="374" fill="#5b6675" font-size="11" text-anchor="middle" font-family="IBM Plex Mono, ui-monospace, monospace">0.8</text>
+<line x1="602.0" y1="104" x2="602.0" y2="356" stroke="#1f2937" stroke-width="1"/>
+<text x="602.0" y="374" fill="#5b6675" font-size="11" text-anchor="middle" font-family="IBM Plex Mono, ui-monospace, monospace">0.9</text>
+<line x1="690.0" y1="104" x2="690.0" y2="356" stroke="#1f2937" stroke-width="1"/>
+<text x="690.0" y="374" fill="#5b6675" font-size="11" text-anchor="middle" font-family="IBM Plex Mono, ui-monospace, monospace">1.0</text>
+<text x="32" y="123" fill="#f2efe9" font-size="13">Quadratic weighted kappa</text>
+<line x1="603.6" y1="118" x2="466.1" y2="118" stroke="#5b6675" stroke-width="2"/>
+<circle cx="603.6" cy="118" r="7" fill="#e8c77a" stroke="#0b0e14" stroke-width="2"/>
+<circle cx="466.1" cy="118" r="7" fill="#4fa88b" stroke="#0b0e14" stroke-width="2"/>
+<text x="452.1" y="122" fill="#4fa88b" font-size="12" text-anchor="end" font-family="IBM Plex Mono, ui-monospace, monospace">0.746</text>
+<text x="617.6" y="122" fill="#e8c77a" font-size="12" text-anchor="start" font-family="IBM Plex Mono, ui-monospace, monospace">0.902</text>
+<text x="32" y="189" fill="#f2efe9" font-size="13">Referable sensitivity</text>
+<line x1="650.3" y1="184" x2="548.3" y2="184" stroke="#5b6675" stroke-width="2"/>
+<circle cx="650.3" cy="184" r="7" fill="#e8c77a" stroke="#0b0e14" stroke-width="2"/>
+<circle cx="548.3" cy="184" r="7" fill="#4fa88b" stroke="#0b0e14" stroke-width="2"/>
+<text x="534.3" y="188" fill="#4fa88b" font-size="12" text-anchor="end" font-family="IBM Plex Mono, ui-monospace, monospace">0.839</text>
+<text x="664.3" y="188" fill="#e8c77a" font-size="12" text-anchor="start" font-family="IBM Plex Mono, ui-monospace, monospace">0.955</text>
+<text x="32" y="255" fill="#f2efe9" font-size="13">Referable specificity</text>
+<line x1="615.6" y1="250" x2="580.6" y2="250" stroke="#5b6675" stroke-width="2"/>
+<circle cx="615.6" cy="250" r="7" fill="#e8c77a" stroke="#0b0e14" stroke-width="2"/>
+<circle cx="580.6" cy="250" r="7" fill="#4fa88b" stroke="#0b0e14" stroke-width="2"/>
+<text x="566.6" y="254" fill="#4fa88b" font-size="12" text-anchor="end" font-family="IBM Plex Mono, ui-monospace, monospace">0.876</text>
+<text x="629.6" y="254" fill="#e8c77a" font-size="12" text-anchor="start" font-family="IBM Plex Mono, ui-monospace, monospace">0.915</text>
+<text x="32" y="321" fill="#f2efe9" font-size="13">Referable ROC-AUC</text>
+<line x1="671.8" y1="316" x2="630.0" y2="316" stroke="#5b6675" stroke-width="2"/>
+<circle cx="671.8" cy="316" r="7" fill="#e8c77a" stroke="#0b0e14" stroke-width="2"/>
+<circle cx="630.0" cy="316" r="7" fill="#4fa88b" stroke="#0b0e14" stroke-width="2"/>
+<text x="616.0" y="320" fill="#4fa88b" font-size="12" text-anchor="end" font-family="IBM Plex Mono, ui-monospace, monospace">0.932</text>
+<text x="685.8" y="320" fill="#e8c77a" font-size="12" text-anchor="start" font-family="IBM Plex Mono, ui-monospace, monospace">0.979</text>
+<text x="32" y="410" fill="#5b6675" font-size="11">IDRiD Disease Grading &#183; CC BY 4.0 &#183; graded through the shipped pipeline &#183; external validation, not clinical validation</text>
+</svg>
