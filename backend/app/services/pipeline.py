@@ -67,7 +67,7 @@ def analyze_eye(img: Image.Image, eye: Eye, screening_id: str) -> EyeResult:
     result.grade_label = prediction["grade_label"]
     result.referable = prediction["referable"]
     result.probabilities = classifier.calibrate(prediction["probabilities"])
-    result.calibrated = True
+    result.calibrated = classifier.IS_CALIBRATED
     result.confidence = max(result.probabilities)
 
     result.lesions = lesions.segment_lesions(working, result.grade)

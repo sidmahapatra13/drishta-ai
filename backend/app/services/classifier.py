@@ -202,12 +202,26 @@ def predict_dr(img: Image.Image) -> dict:
     }
 
 
-def calibrate(probabilities: list[float], temperature: float = 1.0) -> list[float]:
+#: Temperature for the scaling below. 1.0 is a no-op, and is the honest value
+#: until one is fitted on the validation folds from oof_predictions.npy.
+TEMPERATURE = 1.0
+
+#: Whether anything downstream may describe this output as calibrated. Derived
+#: rather than asserted: `calibrated` was previously set True on every result
+#: while the temperature was 1.0, so the UI displayed "calibrated confidence"
+#: beside a raw number. Uncalibrated output is over-confident, and presenting
+#: it to a clinician as calibrated is exactly the overclaim the project's rules
+#: forbid.
+IS_CALIBRATED = TEMPERATURE != 1.0
+
+
+def calibrate(probabilities: list[float], temperature: float = TEMPERATURE) -> list[float]:
     """Temperature scaling.
 
-    A temperature of 1.0 is a no-op. The real value is fitted on the validation
-    set on day 3 - raw output is over-confident and must not be shown to a
-    clinician as if it were a probability of disease.
+    Fitting the real temperature needs only oof_predictions.npy and train.csv -
+    no GPU - and lands with the ECE figure and reliability diagram. Until then
+    this is deliberately a no-op that says so through IS_CALIBRATED rather than
+    a plausible-looking constant.
     """
     logits = np.log(np.clip(probabilities, 1e-9, 1.0)) / temperature
     exp = np.exp(logits - logits.max())

@@ -172,3 +172,20 @@ def test_demo_captures_keep_their_status(name, expected):
     if not path.exists():
         pytest.skip(f"{name} not fetched")
     assert quality.assess_quality(Image.open(path)).status is expected
+
+
+def test_result_does_not_claim_calibration_that_has_not_happened():
+    """`calibrated` was set True unconditionally while the temperature was 1.0.
+
+    A no-op temperature is not calibration, and the UI renders this flag beside
+    a confidence figure. Claiming a number is calibrated when it is not is the
+    kind of overclaim this project's rules exist to prevent, so the flag has to
+    follow whether a temperature was actually fitted.
+    """
+    from app.contract import Eye
+    from app.services import classifier, pipeline
+
+    result = pipeline.analyze_eye(synthetic_fundus(), Eye.LEFT, "cal")
+    assert result.calibrated is classifier.IS_CALIBRATED
+    if classifier.TEMPERATURE == 1.0:
+        assert result.calibrated is False
