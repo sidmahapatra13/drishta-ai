@@ -38,8 +38,9 @@ DEST = ROOT / "local-data" / "demo"
 CASES = {
     "4134b290f5f3": "grade 0 - gradable, not referable",
     "0dbaa09a458c": "grade 2 - gradable, referable",
-    "4d47300e3ddb": "grade 3 - borderline capture, enhanced then graded",
+    "4d47300e3ddb": "grade 3 - gradable",
     "838c87c63422": "grade 4 - urgent",
+    "0097f532ac9f": "grade 0 - borderline capture, enhanced then graded",
 }
 
 #: Defocus applied to the grade 3 capture to build the recapture case. Radius 4
