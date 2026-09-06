@@ -45,6 +45,26 @@ disagree.
 
 **This is cross-validation on a public dataset, not clinical validation.**
 
+## What it misses
+
+That 95.5% is an average over very different failures, so it is broken out by
+how severe the missed eye actually was. All 67 misses are listed by image id in
+`experiments/failures/failures.json`.
+
+| True severity | n | Missed | Referral sensitivity |
+|---|---|---|---|
+| 2 — Moderate NPDR | 999 | 64 | 93.6% |
+| 3 — Severe NPDR | 193 | **0** | **100%** |
+| 4 — Proliferative DR | 295 | 3 | **99.0%** |
+| **Sight-threatening (3+)** | **488** | **3** | **99.4%** |
+
+The misses are concentrated where they cost least: 64 of 67 are grade 2, the
+mildest referable grade, sitting just under a boundary tuned to catch it. Three
+proliferative eyes were missed and no severe NPDR was. This is reported because
+a screening tool that misses moderate disease and one that misses proliferative
+disease are not the same tool, and one sensitivity figure cannot tell them
+apart.
+
 ## Does it transfer?
 
 The model was trained on APTOS alone, then graded all 516 images of IDRiD — an
@@ -142,6 +162,8 @@ frontend/src/styles/          design tokens and type scale
 experiments/classification/   APTOS training run — script, notebook, OOF preds
 experiments/calibration/      fitted calibration + reliability diagram
 experiments/validation/       IDRiD external validation + comparison figure
+experiments/failures/         every miss, by severity, with the ones shown
+experiments/ablation/         one technique removed at a time
 scripts/                      demo set, calibration set, quality-gate and
                               confidence fits, external validation
 matlab/models/                ONNX network + model_card.json (the metrics)

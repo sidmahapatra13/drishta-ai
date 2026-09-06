@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="382" viewBox="0 0 760 382" font-family="IBM Plex Sans, system-ui, sans-serif">
+<rect width="760" height="382" fill="#0b0e14"/>
+<text x="32" y="40" fill="#f2efe9" font-size="21" font-weight="600">What the model misses</text>
+<text x="32" y="64" fill="#8b97a8" font-size="13">Referral sensitivity by true severity &#183; APTOS out-of-fold, 1487 referable eyes</text>
+<text x="32" y="104" fill="#4fa88b" font-size="27" font-weight="600" font-family="IBM Plex Mono, ui-monospace, monospace">99.4%</text>
+<text x="140" y="98" fill="#f2efe9" font-size="13">of sight-threatening disease is caught</text>
+<text x="140" y="116" fill="#5b6675" font-size="11">grade 3 and above &#183; 3 missed of 488</text>
+<text x="32" y="155" fill="#f2efe9" font-size="13">2 &#183; Moderate NPDR</text>
+<text x="32" y="172" fill="#5b6675" font-size="11" font-family="IBM Plex Mono, ui-monospace, monospace">n = 999</text>
+<rect x="250" y="141" width="410" height="18" rx="4" fill="#0e131b"/>
+<rect x="250" y="141" width="383.7" height="18" rx="4" fill="#4fa88b"/>
+<text x="672" y="155" fill="#f2efe9" font-size="13" font-family="IBM Plex Mono, ui-monospace, monospace">93.6%</text>
+<text x="250" y="178" fill="#c9552e" font-size="11">64 referable eyes called not referable</text>
+<text x="32" y="221" fill="#f2efe9" font-size="13">3 &#183; Severe NPDR</text>
+<text x="32" y="238" fill="#5b6675" font-size="11" font-family="IBM Plex Mono, ui-monospace, monospace">n = 193</text>
+<rect x="250" y="207" width="410" height="18" rx="4" fill="#0e131b"/>
+<rect x="250" y="207" width="410.0" height="18" rx="4" fill="#4fa88b"/>
+<text x="672" y="221" fill="#f2efe9" font-size="13" font-family="IBM Plex Mono, ui-monospace, monospace">100.0%</text>
+<text x="32" y="287" fill="#f2efe9" font-size="13">4 &#183; Proliferative DR</text>
+<text x="32" y="304" fill="#5b6675" font-size="11" font-family="IBM Plex Mono, ui-monospace, monospace">n = 295</text>
+<rect x="250" y="273" width="410" height="18" rx="4" fill="#0e131b"/>
+<rect x="250" y="273" width="405.8" height="18" rx="4" fill="#4fa88b"/>
+<text x="672" y="287" fill="#f2efe9" font-size="13" font-family="IBM Plex Mono, ui-monospace, monospace">99.0%</text>
+<text x="250" y="310" fill="#c9552e" font-size="11">3 referable eyes called not referable</text>
+<text x="32" y="360" fill="#5b6675" font-size="11">Referable is grade 2 and above &#183; out-of-fold predictions, no image scored by a model that trained on it</text>
+</svg>
