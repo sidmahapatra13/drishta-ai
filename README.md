@@ -1,4 +1,4 @@
-# SIH26038 — AI-Assisted Diabetic Retinopathy Screening
+# DRishta — AI-powered Diabetic Retinopathy Detection (SIH2026038)
 
 Explainable AI screening and referral for rural India. Team Smarty Pants.
 
