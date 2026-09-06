@@ -13,7 +13,7 @@ cd smarty-pants-hackathon
 
 ## 2. Start From The Latest Main
 
-Always begin by syncing your local copy:
+Always begin by syncing your local copy (after cloning the repo and cd into it):
 
 ```bash
 git checkout main
